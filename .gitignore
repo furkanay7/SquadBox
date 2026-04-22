@@ -1,0 +1,451 @@
+# ================================================
+# SquadBox Project - Comprehensive .gitignore
+# Covers: Python (Backend), React Native (Frontend), IDE/OS files
+# ================================================
+
+# =================================================
+# PYTHON (BACKEND) - FastAPI
+# =================================================
+
+# Virtual environments
+backend/.venv/
+backend/venv/
+backend/env/
+backend/ENV/
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Python cache & compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Django/Flask/FastAPI specific
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+instance/
+.webassets-cache
+
+# Scrapy
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# PDM
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath
+*.sage.py
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# Pytype
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# Backend specific
+backend/__pycache__/
+backend/**/*.pyc
+backend/.env
+backend/.env.local
+backend/*.log
+backend/.mypy_cache/
+backend/.pytest_cache/
+backend/htmlcov/
+
+# =================================================
+# REACT NATIVE (FRONTEND)
+# =================================================
+
+# Dependencies
+frontend/node_modules/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Expo
+frontend/.expo/
+.expo/
+.expo-shared/
+
+# Metro bundler
+.metro-health-check*
+
+# React Native build directories
+frontend/build/
+frontend/dist/
+frontend/.next/
+frontend/out/
+build/
+dist/
+.next/
+out/
+
+# React Native - iOS
+frontend/ios/Pods/
+frontend/ios/build/
+ios/Pods/
+ios/build/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+ios/.xcode.env.local
+
+# React Native - Android
+frontend/android/app/debug/
+frontend/android/app/release/
+frontend/android/build/
+frontend/android/app/build/
+frontend/android/.gradle/
+frontend/android/local.properties
+frontend/android/*.iml
+frontend/android/.idea/
+android/app/debug/
+android/app/release/
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+android/*.iml
+android/.idea/
+.gradle/
+*.iml
+*.hprof
+.cxx/
+
+# Buck
+buck-out/
+\.buckd/
+*.keystore
+!debug.keystore
+
+# Watchman
+.watchmanconfig
+
+# Bundle artifacts
+*.jsbundle
+*.bundle
+
+# CocoaPods
+/ios/Pods/
+/vendor/bundle/
+
+# Hermes
+frontend/hermes-engine-*.tar.gz
+hermes-engine-*.tar.gz
+
+# Jest
+frontend/coverage/
+coverage/
+.jest/
+
+# Storybook
+storybook-static/
+
+# Temporary files
+*.temp
+*.tmp
+*.swp
+*.swo
+*~
+
+# =================================================
+# IDE & EDITOR FILES
+# =================================================
+
+# VS Code
+.vscode/
+*.code-workspace
+.history/
+
+# Windsurf
+.windsurfrules
+
+# JetBrains / IntelliJ
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Visual Studio
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+*.swp
+*.swo
+*~
+.vim/
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# =================================================
+# OPERATING SYSTEM FILES
+# =================================================
+
+# macOS
+.DS_Store
+.DS_Store?
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+ ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.nfs*
+
+# =================================================
+# LOGS & DATABASES
+# =================================================
+
+*.log
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+
+# =================================================
+# MISCELLANEOUS
+# =================================================
+
+# lock files (comment out if you want to commit them)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# TypeScript
+*.tsbuildinfo
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# Next.js
+.next/
+out/
+
+# Nuxt.js
+.nuxt/
+dist/
+
+# Gatsby
+.cache/
+public/
+
+# Vuepress
+.vuepress/dist
+
+# Serverless
+.serverless/
+
+# FuseBox
+.fusebox/
+
+# DynamoDB Local
+dynamodb_local
+
+# TernJS
+.tern-port
+
+# Stores VSCode versions used for testing
+.vscode-test
+
+# yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Turborepo
+.turbo/
+
+# Vercel
+.vercel/
+
+# Sentry
+.sentryclirc
+
+# Local Netlify folder
+.netlify/
+
+# Supabase
+.supabase/
+
+# Firebase
+.firebase/
+
+# =================================================
+# PROJECT SPECIFIC
+# =================================================
+
+# Add any project-specific files/directories below
+# secrets/
+# config/local*
