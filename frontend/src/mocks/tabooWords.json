@@ -1,0 +1,77 @@
+[
+  {
+    "id": 1,
+    "word": "Okul",
+    "forbidden": ["Öğrenci", "Öğretmen", "Ders", "Sınıf", "Eğitim"]
+  },
+  {
+    "id": 2,
+    "word": "Hastane",
+    "forbidden": ["Doktor", "Hasta", "Tedavi", "İlaç", "Ameliyat"]
+  },
+  {
+    "id": 3,
+    "word": "Sinema",
+    "forbidden": ["Film", "Popcorn", "Salon", "Perde", "Bilet"]
+  },
+  {
+    "id": 4,
+    "word": "Restoran",
+    "forbidden": ["Yemek", "Garson", "Mutfak", "Menü", "Servis"]
+  },
+  {
+    "id": 5,
+    "word": "Plaj",
+    "forbidden": ["Deniz", "Kum", "Güneş", "Yüzme", "Sahil"]
+  },
+  {
+    "id": 6,
+    "word": "Kütüphane",
+    "forbidden": ["Kitap", "Sessiz", "Okuma", "Raflar", "Yazar"]
+  },
+  {
+    "id": 7,
+    "word": "Stadyum",
+    "forbidden": ["Futbol", "Taraftar", "Maç", "Takım", "Gol"]
+  },
+  {
+    "id": 8,
+    "word": "Havaalanı",
+    "forbidden": ["Uçak", "Pilot", "Bilet", "Bagaj", "Uçuş"]
+  },
+  {
+    "id": 9,
+    "word": "Otel",
+    "forbidden": ["Oda", "Rezervasyon", "Misafir", "Servis", "Konaklama"]
+  },
+  {
+    "id": 10,
+    "word": "Market",
+    "forbidden": ["Alışveriş", "Kasa", "Ürün", "Reyon", "Sepet"]
+  },
+  {
+    "id": 11,
+    "word": "Tiyatro",
+    "forbidden": ["Oyun", "Sahne", "Oyuncu", "Perde", "Bilet"]
+  },
+  {
+    "id": 12,
+    "word": "Park",
+    "forbidden": ["Ağaç", "Çocuk", "Oyun Alanı", "Bank", "Yeşil"]
+  },
+  {
+    "id": 13,
+    "word": "Kafe",
+    "forbidden": ["Kahve", "İnternet", "Çalışma", "Arkadaş", "Sohbet"]
+  },
+  {
+    "id": 14,
+    "word": "Spor Salonu",
+    "forbidden": ["Egzersiz", "Ağırlık", "Koşu", "Antrenör", "Sağlık"]
+  },
+  {
+    "id": 15,
+    "word": "Müze",
+    "forbidden": ["Sanat", "Tarih", "Eser", "Sergi", "Rehber"]
+  }
+]
