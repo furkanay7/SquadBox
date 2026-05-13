@@ -7,7 +7,7 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import tabooWords from '../mocks/tabooWords.json';
+import { fetchRandomTabooWord } from '../services/api';
 
 interface TabooGameScreenProps {
   navigation: any;
@@ -55,7 +55,8 @@ export const TabooGameScreen: React.FC<TabooGameScreenProps> = ({ navigation, ro
   const currentTeamScore = currentTeamIndex === 0 ? teamAScore : teamBScore;
 
   // Game state
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [currentWord, setCurrentWord] = useState<any>(null);
+  const [isLoadingWord, setIsLoadingWord] = useState(true);
   const [timeLeft, setTimeLeft] = useState(initialTimer);
   const [isPlaying, setIsPlaying] = useState(false);
   const [passesUsed, setPassesUsed] = useState(0);
@@ -73,12 +74,23 @@ export const TabooGameScreen: React.FC<TabooGameScreenProps> = ({ navigation, ro
     teamB: teamBScore,
   });
 
-  const [gameWords] = useState(() => 
-    [...tabooWords].sort(() => Math.random() - 0.5)
-  );
-
-  const currentWord = gameWords[currentWordIndex];
   const passDisabled = passLimit !== 999 && passesUsed >= passLimit;
+
+const loadNewWord = async () => {
+    setIsLoadingWord(true);
+    const data = await fetchRandomTabooWord();
+    if (data) {
+      setCurrentWord(data);
+    } else {
+      Alert.alert("Hata", "Kelime çekilemedi. Bilgisayar ile aynı Wi-Fi ağında mısınız?");
+    }
+    setIsLoadingWord(false);
+  };
+
+// Component yüklendiğinde ilk kelimeyi backend'den çek
+  useEffect(() => {
+    loadNewWord();
+  }, []);
 
   useEffect(() => {
     let interval: any;
@@ -110,6 +122,8 @@ export const TabooGameScreen: React.FC<TabooGameScreenProps> = ({ navigation, ro
       setGamePhase('scoreboard');
       return;
     }
+    
+
     
     // Calculate which player is next (0 to totalPlayers-1)
     const nextPlayerIdx = newTurnCounter % totalPlayers;
@@ -194,7 +208,7 @@ export const TabooGameScreen: React.FC<TabooGameScreenProps> = ({ navigation, ro
   }, [currentTeamIndex]);
 
   const nextWord = () => {
-    setCurrentWordIndex((prev) => (prev + 1) % gameWords.length);
+    loadNewWord();
   };
 
   const startGame = () => {
@@ -355,12 +369,19 @@ export const TabooGameScreen: React.FC<TabooGameScreenProps> = ({ navigation, ro
 
       {/* Word Card */}
       <View style={styles.wordCard}>
-        <Text style={styles.word}>{currentWord?.word}</Text>
-        <View style={styles.divider} />
-        <Text style={styles.forbiddenTitle}>YASAK KELİMELER:</Text>
-        {currentWord?.forbidden.map((word: string, index: number) => (
-          <Text key={index} style={styles.forbiddenWord}>{word}</Text>
-        ))}
+        {isLoadingWord ? (
+          <Text style={styles.word}>⏳ Kelime Geliyor...</Text>
+        ) : (
+          <>
+            <Text style={styles.word}>{currentWord?.word}</Text>
+            <View style={styles.divider} />
+            <Text style={styles.forbiddenTitle}>YASAK KELİMELER:</Text>
+            {/* Backend'den gelen forbidden_words JSON verisini haritalıyoruz */}
+            {(currentWord?.forbidden_words || []).map((word: string, index: number) => (
+              <Text key={index} style={styles.forbiddenWord}>{word}</Text>
+            ))}
+          </>
+        )}
       </View>
 
       {/* Game Controls */}

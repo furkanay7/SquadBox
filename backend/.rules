@@ -1,0 +1,24 @@
+# Backend Rules - Python / FastAPI
+
+## 1. Core Stack
+- Python 3.x, FastAPI, Pydantic, Uvicorn.
+- Database: PostgreSQL (via SQLAlchemy or asyncpg) and Redis (for caching/state).
+
+## 2. Coding Style & Foundational Structure
+- Write Python code that is highly readable, structurally sound, and avoids overly clever or complex one-liners. 
+- Use explicit variable names and clear logic flows to reinforce foundational programming concepts.
+- Use `snake_case` for variables, functions, and file names. Use `PascalCase` for Classes and Pydantic models.
+- Include meaningful docstrings for complex logic, especially for data pipelines.
+
+## 3. FastAPI Best Practices
+- **Asynchronous Execution:** Use `async def` for all endpoints, database calls, and external API calls (LLM integrations).
+- **Validation:** Strictly use Pydantic models for request and response validation.
+- **Modular Routing:** Use `APIRouter` to separate game logic (e.g., `/api/tabu`, `/api/spyfall`, `/api/ai-generation`).
+
+## 4. AI & LLM Integration Protocol
+- **Prompt Isolation:** Keep the "System Prompt" logic cleanly separated from the endpoint routing.
+- **Resilience:** Ensure robust JSON parsing and implement fallback mechanisms in case the LLM returns malformed data or times out.
+- **Moderation:** Always pipe LLM outputs through a moderation/validation layer before returning them to the client.
+
+## 5. Logging
+- Implement structured logging for telemetry (e.g., tracking skipped words in Taboo) without logging sensitive user data.

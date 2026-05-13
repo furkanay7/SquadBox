@@ -1,77 +1,102 @@
 [
-  {
-    "id": 1,
-    "word": "Okul",
-    "forbidden": ["Öğrenci", "Öğretmen", "Ders", "Sınıf", "Eğitim"]
-  },
-  {
-    "id": 2,
-    "word": "Hastane",
-    "forbidden": ["Doktor", "Hasta", "Tedavi", "İlaç", "Ameliyat"]
-  },
-  {
-    "id": 3,
-    "word": "Sinema",
-    "forbidden": ["Film", "Popcorn", "Salon", "Perde", "Bilet"]
-  },
-  {
-    "id": 4,
-    "word": "Restoran",
-    "forbidden": ["Yemek", "Garson", "Mutfak", "Menü", "Servis"]
-  },
-  {
-    "id": 5,
-    "word": "Plaj",
-    "forbidden": ["Deniz", "Kum", "Güneş", "Yüzme", "Sahil"]
-  },
-  {
-    "id": 6,
-    "word": "Kütüphane",
-    "forbidden": ["Kitap", "Sessiz", "Okuma", "Raflar", "Yazar"]
-  },
-  {
-    "id": 7,
-    "word": "Stadyum",
-    "forbidden": ["Futbol", "Taraftar", "Maç", "Takım", "Gol"]
-  },
-  {
-    "id": 8,
-    "word": "Havaalanı",
-    "forbidden": ["Uçak", "Pilot", "Bilet", "Bagaj", "Uçuş"]
-  },
-  {
-    "id": 9,
-    "word": "Otel",
-    "forbidden": ["Oda", "Rezervasyon", "Misafir", "Servis", "Konaklama"]
-  },
-  {
-    "id": 10,
-    "word": "Market",
-    "forbidden": ["Alışveriş", "Kasa", "Ürün", "Reyon", "Sepet"]
-  },
-  {
-    "id": 11,
-    "word": "Tiyatro",
-    "forbidden": ["Oyun", "Sahne", "Oyuncu", "Perde", "Bilet"]
-  },
-  {
-    "id": 12,
-    "word": "Park",
-    "forbidden": ["Ağaç", "Çocuk", "Oyun Alanı", "Bank", "Yeşil"]
-  },
-  {
-    "id": 13,
-    "word": "Kafe",
-    "forbidden": ["Kahve", "İnternet", "Çalışma", "Arkadaş", "Sohbet"]
-  },
-  {
-    "id": 14,
-    "word": "Spor Salonu",
-    "forbidden": ["Egzersiz", "Ağırlık", "Koşu", "Antrenör", "Sağlık"]
-  },
-  {
-    "id": 15,
-    "word": "Müze",
-    "forbidden": ["Sanat", "Tarih", "Eser", "Sergi", "Rehber"]
-  }
+  { "word": "Güneş", "forbidden": ["Yıldız", "Sıcak", "Sarı", "Gündüz", "Isı"] },
+  { "word": "Piyano", "forbidden": ["Tuş", "Enstrüman", "Çalmak", "Müzik", "Siyah-Beyaz"] },
+  { "word": "Paraşüt", "forbidden": ["Uçak", "Atlamak", "Hava", "Açmak", "Uçmak"] },
+  { "word": "Dondurma", "forbidden": ["Soğuk", "Külah", "Yaz", "Tatlı", "Erimak"] },
+  { "word": "Avukat", "forbidden": ["Mahkeme", "Hâkim", "Savunmak", "Adalet", "Dava"] },
+  { "word": "Kahve", "forbidden": ["Sıcak", "Fincan", "Kafein", "Sabah", "Çay"] },
+  { "word": "Kamp", "forbidden": ["Çadır", "Orman", "Ateş", "Doğa", "Uyku Tulumu"] },
+  { "word": "Pilot", "forbidden": ["Uçak", "Hava", "Uçuş", "Kaptan", "Kokpit"] },
+  { "word": "Bisiklet", "forbidden": ["Pedal", "Tekerlek", "Sürmek", "Kask", "İki Teker"] },
+  { "word": "Hamburger", "forbidden": ["Köfte", "Ekmek", "Fast Food", "Ketçap", "Patates"] },
+  { "word": "Diş Hekimi", "forbidden": ["Diş", "Koltuk", "Ağız", "Doktor", "Fırça"] },
+  { "word": "Fotoğraf", "forbidden": ["Kamera", "Çekmek", "Resim", "Albüm", "Poz"] },
+  { "word": "Mıknatıs", "forbidden": ["Demir", "Çekmek", "Metal", "Kutup", "İtmek"] },
+  { "word": "Denizaltı", "forbidden": ["Su", "Gemi", "Dalış", "Periskop", "Okyanus"] },
+  { "word": "Asansör", "forbidden": ["Kat", "Çıkmak", "İnmek", "Bina", "Düğme"] },
+  { "word": "Gökkuşağı", "forbidden": ["Renk", "Yağmur", "Güneş", "Yedi", "Gökyüzü"] },
+  { "word": "Astronot", "forbidden": ["Uzay", "Roket", "Ay", "Yıldız", "Kıyafet"] },
+  { "word": "Buzdolabı", "forbidden": ["Soğuk", "Mutfak", "Yemek", "Saklamak", "Dondurucu"] },
+  { "word": "Teleskop", "forbidden": ["Uzay", "Bakmak", "Yıldız", "Gözlem", "Gezegen"] },
+  { "word": "Arı", "forbidden": ["Bal", "İğne", "Sarı-Siyah", "Çiçek", "Vız"] },
+  { "word": "Şemsiye", "forbidden": ["Yağmur", "Islanmak", "Açmak", "Hava", "Güneş"] },
+  { "word": "Satranç", "forbidden": ["Tahta", "Şah-Mat", "Kale", "Piyon", "Oyun"] },
+  { "word": "Banka", "forbidden": ["Para", "Hesap", "Kredi", "Cüzdan", "ATM"] },
+  { "word": "Ayna", "forbidden": ["Bakmak", "Cam", "Yansıma", "Görüntü", "Yüz"] },
+  { "word": "Klavye", "forbidden": ["Tuş", "Yazmak", "Bilgisayar", "Fare", "Harf"] },
+  { "word": "Bavul", "forbidden": ["Tatil", "Yolculuk", "Kıyafet", "Çanta", "Valiz"] },
+  { "word": "Sözlük", "forbidden": ["Kelime", "Anlam", "Dil", "Kitap", "Bakmak"] },
+  { "word": "Helikopter", "forbidden": ["Uçmak", "Pervane", "Hava", "Pilot", "Dikey"] },
+  { "word": "Piknik", "forbidden": ["Sepet", "Doğa", "Yemek", "Örtü", "Ağaç"] },
+  { "word": "Gözlük", "forbidden": ["Göz", "Görmek", "Cam", "Uzak", "Yakın"] },
+  { "word": "Bulaşık Makinesi", "forbidden": ["Tabak", "Yıkamak", "Mutfak", "Temiz", "Su"] },
+  { "word": "İnternet", "forbidden": ["Ağ", "Bağlantı", "Web", "Bilgisayar", "Site"] },
+  { "word": "Pasta", "forbidden": ["Doğum Günü", "Kek", "Mum", "Tatlı", "Krema"] },
+  { "word": "Bıçak", "forbidden": ["Kesmek", "Keskin", "Mutfak", "Çatal", "Alet"] },
+  { "word": "Şehir", "forbidden": ["Bina", "Kalabalık", "Trafik", "Nüfus", "Belediye"] },
+  { "word": "Harita", "forbidden": ["Yol", "Yer", "Bulmak", "Dünya", "Ülke"] },
+  { "word": "Rüzgar", "forbidden": ["Hava", "Esmek", "Fırtına", "Uçurmak", "Serin"] },
+  { "word": "Televizyon", "forbidden": ["Ekran", "Kanal", "İzlemek", "Kumanda", "Dizi"] },
+  { "word": "Ceket", "forbidden": ["Giymek", "Kıyafet", "Düğme", "Mont", "Pantolon"] },
+  { "word": "Saat", "forbidden": ["Zaman", "Dakika", "Bilek", "Akrep", "Yelkovan"] },
+  { "word": "Uçurtma", "forbidden": ["Rüzgar", "İp", "Uçurmak", "Gökyüzü", "Kuyruk"] },
+  { "word": "Çikolata", "forbidden": ["Tatlı", "Sütlü", "Kakaolu", "Yemek", "Şeker"] },
+  { "word": "Pusula", "forbidden": ["Yön", "Kuzey", "Güney", "Yol", "Bulmak"] },
+  { "word": "Şömine", "forbidden": ["Ateş", "Odun", "Isınmak", "Sıcak", "Ev"] },
+  { "word": "Balon", "forbidden": ["Hava", "Uçmak", "Şişirmek", "Renkli", "Patlamak"] },
+  { "word": "Bahçe", "forbidden": ["Çiçek", "Ağaç", "Ev", "Yeşil", "Toprak"] },
+  { "word": "Süt", "forbidden": ["İnek", "Beyaz", "İçmek", "Kalsiyum", "Yoğurt"] },
+  { "word": "Ekmek", "forbidden": ["Fırın", "Yemek", "Buğday", "Hamur", "Kahvaltı"] },
+  { "word": "Yastık", "forbidden": ["Uyku", "Yatak", "Kuş Tüyü", "Yumuşak", "Baş"] },
+  { "word": "Balık", "forbidden": ["Deniz", "Yüzmek", "Olta", "Su", "Akvaryum"] },
+  { "word": "Gemi", "forbidden": ["Deniz", "Su", "Kaptan", "Liman", "Yüzmek"] },
+  { "word": "Sandalyeler", "forbidden": ["Oturmak", "Masa", "Mobilya", "Ayak", "Dört"] },
+  { "word": "Köprü", "forbidden": ["Yol", "Geçmek", "Nehir", "Deniz", "Bağlamak"] },
+  { "word": "Kar", "forbidden": ["Kış", "Soğuk", "Beyaz", "Yağmak", "Buz"] },
+  { "word": "Orman", "forbidden": ["Ağaç", "Yeşil", "Doğa", "Hayvan", "Odun"] },
+  { "word": "Pencere", "forbidden": ["Cam", "Bakmak", "Dışarı", "Ev", "Manzara"] },
+  { "word": "Gazete", "forbidden": ["Haber", "Okumak", "Kağıt", "Günlük", "Manşet"] },
+  { "word": "Telefon", "forbidden": ["Konuşmak", "Aramak", "Mesaj", "Akıllı", "Cihaz"] },
+  { "word": "Limon", "forbidden": ["Ekşi", "Sarı", "Salata", "Meyve", "C Vitamini"] },
+  { "word": "Gömlek", "forbidden": ["Kıyafet", "Düğme", "Yaka", "Giymek", "Ütü"] },
+  { "word": "Sabun", "forbidden": ["Yıkamak", "Temizlik", "El", "Köpük", "Banyo"] },
+  { "word": "Havlu", "forbidden": ["Kurulanmak", "Banyo", "Deniz", "Islak", "Yumuşak"] },
+  { "word": "Anahtar", "forbidden": ["Kapı", "Kilidi", "Açmak", "Metal", "Kasa"] },
+  { "word": "Merdiven", "forbidden": ["Basamak", "Çıkmak", "İnmek", "Kat", "Yüksek"] },
+  { "word": "Araba", "forbidden": ["Tekerlek", "Sürmek", "Motor", "Ulaşım", "Direksiyon"] },
+  { "word": "Cüzdan", "forbidden": ["Para", "Kart", "Cep", "Deri", "Taşımak"] },
+  { "word": "Bulut", "forbidden": ["Gökyüzü", "Yağmur", "Beyaz", "Hava", "Güneş"] },
+  { "word": "Çay", "forbidden": ["İçmek", "Sıcak", "Bardak", "Demlik", "Şeker"] },
+  { "word": "Sokak", "forbidden": ["Yol", "Cadde", "Bina", "Yürümek", "Dışarı"] },
+  { "word": "Kalem", "forbidden": ["Yazmak", "Kağıt", "Defter", "Uç", "Mürekkep"] },
+  { "word": "Ayakkabı", "forbidden": ["Ayak", "Giymek", "Yürümek", "Bağcık", "Taban"] },
+  { "word": "Buz", "forbidden": ["Soğuk", "Su", "Donmak", "Erimak", "Buzdolabı"] },
+  { "word": "Lamba", "forbidden": ["Işık", "Aydınlık", "Gece", "Elektrik", "Ampul"] },
+  { "word": "Tarak", "forbidden": ["Saç", "Düzenlemek", "Fırça", "Kıl", "Berber"] },
+  { "word": "Sabah", "forbidden": ["Erken", "Gün", "Uyanmak", "Kahvaltı", "Güneş"] },
+  { "word": "Akşam", "forbidden": ["Gece", "Yemek", "Karanlık", "Güneş", "Son"] },
+  { "word": "Kapı", "forbidden": ["Açmak", "Kapatmak", "Girmek", "Oda", "Kilit"] },
+  { "word": "Yemek", "forbidden": ["Acıkmak", "Mutfak", "Pişirmek", "Tabak", "Masa"] },
+  { "word": "Su", "forbidden": ["İçmek", "Sıvı", "Bardak", "Deniz", "Yaşam"] },
+  { "word": "Ateş", "forbidden": ["Sıcak", "Yakmak", "Alev", "Duman", "Odun"] },
+  { "word": "Kedi", "forbidden": ["Miyav", "Hayvan", "Pati", "Tüy", "Fare"] },
+  { "word": "Köpek", "forbidden": ["Hav", "Hayvan", "Sadık", "Pati", "Kemik"] },
+  { "word": "Kuş", "forbidden": ["Uçmak", "Kanat", "Tüy", "Gaga", "Yuva"] },
+  { "word": "Ağaç", "forbidden": ["Orman", "Yeşil", "Yaprak", "Dal", "Kök"] },
+  { "word": "Mutfak", "forbidden": ["Yemek", "Tencere", "Ocak", "Buzdolabı", "Pişirmek"] },
+  { "word": "Banyo", "forbidden": ["Duş", "Sabun", "Su", "Şampuan", "Yıkanmak"] },
+  { "word": "Gökdelen", "forbidden": ["Bina", "Yüksek", "Kat", "Şehir", "Asansör"] },
+  { "word": "Okyanus", "forbidden": ["Su", "Büyük", "Deniz", "Mavi", "Dalga"] },
+  { "word": "Piyango", "forbidden": ["Bilet", "Para", "Şans", "Çekiliş", "İkramiye"] },
+  { "word": "Göktaşı", "forbidden": ["Uzay", "Dünya", "Düşmek", "Krater", "Kaya"] },
+  { "word": "Yanardağ", "forbidden": ["Lav", "Patlamak", "Dağ", "Ateş", "Duman"] },
+  { "word": "Papatya", "forbidden": ["Çiçek", "Beyaz", "Sarı", "Seviyor-Sevmiyor", "Taç"] },
+  { "word": "Balina", "forbidden": ["Deniz", "Büyük", "Memeli", "Su", "Okyanus"] },
+  { "word": "Kanguru", "forbidden": ["Avustralya", "Kese", "Zıplamak", "Hayvan", "Yavru"] },
+  { "word": "Zebra", "forbidden": ["Çizgi", "Siyah-Beyaz", "Hayvan", "At", "Afrika"] },
+  { "word": "Gorgol", "forbidden": ["Yüzük", "Kıymetli", "Mağara", "Canavar", "Efsane"] },
+  { "word": "Mühendis", "forbidden": ["Hesap", "İş", "Proje", "Teknik", "Tasarım"] },
+  { "word": "Daktilo", "forbidden": ["Yazmak", "Eski", "Kağıt", "Tuş", "Mürekkep"] },
+  { "word": "Pusula", "forbidden": ["Yön", "Kuzey", "Güney", "Yol", "Harita"] },
+  { "word": "Mikroskop", "forbidden": ["Laboratuvar", "Bakmak", "Hücre", "Küçük", "Büyütmek"] }
 ]

@@ -1,0 +1,23 @@
+# Frontend Rules - React Native
+
+## 1. Core Stack
+- React Native (Expo preferred), React Hooks.
+- Styling: StyleSheet or utility-first (NativeWind/Tailwind).
+
+## 2. Component Architecture
+- Use functional components exclusively. No class components.
+- Keep files small and focused. One component/module per file.
+- Use `PascalCase` for components and file names (e.g., `GameCard.tsx`), `camelCase` for functions/variables.
+
+## 3. UI/UX & Game Mechanics
+- **Pass & Play Focus:** The app relies heavily on shared device usage. Ensure buttons and touch targets are large and accessible.
+- **State Protection:** Screens transitioning between players must strictly hide sensitive information (like Spyfall roles). Emphasize "Hold-to-Reveal" mechanics.
+- **Animations:** Use smooth, lightweight animations for loading states, especially while waiting for AI generation.
+
+## 4. State Management & API
+- Separate UI components from business logic. Use custom hooks for API calls.
+- Handle loading states gracefully to prevent UI freezing during backend requests.
+- Implement robust error boundaries and user-friendly error messages (never fail silently or crash).
+
+## 5. File Structure
+- Keep a clean hierarchy: `/components`, `/screens`, `/hooks`, `/services` (for API calls), and `/utils`.

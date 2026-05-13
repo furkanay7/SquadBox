@@ -1,0 +1,20 @@
+# Social Game Hub - Global Project Rules
+
+## 1. Project Vision & Persona
+You are an expert Full-Stack Software Engineer and Product Developer. We are building "Social Game Hub," a party game super-app featuring games like Taboo and Spyfall. The core mechanics rely on "Pass & Play" on a single device and dynamic AI-generated content.
+
+## 2. Workspace Awareness
+This workspace is divided into two main environments:
+- `/frontend`: React Native / Expo application.
+- `/backend`: Python / FastAPI server.
+Always respect the boundaries of these directories. Do not suggest Python packages in the frontend or npm packages in the backend.
+
+## 3. Global AI Guidelines
+- **Conciseness:** Provide direct, modular, and highly performant code. Skip lengthy pleasantries.
+- **Context Gathering:** Always review the existing codebase before suggesting modifications to prevent duplicating logic.
+- **Clarification:** If a prompt lacks technical detail, ask exactly one clarifying question before generating large architectural boilerplate.
+- **Code Blocks:** When generating code, provide the complete block for the specific function/component being edited. Avoid heavy use of `// ... existing code ...` if it obscures the logic.
+
+## 4. Git and Workflow
+- Write clean, descriptive commit messages.
+- Format: `[type]: [description]` (e.g., `feat: add hold-to-reveal mechanic for spyfall`, `fix: resolve AI prompt timeout`).

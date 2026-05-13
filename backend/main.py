@@ -1,5 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import AsyncSession
+from backend.database import get_db_session
+from backend.api.v1.endpoints import taboo, spyfall
 
 app = FastAPI(
     title="SquadBox API",
@@ -15,7 +18,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
+# Base Router
+router = APIRouter()
+
+@router.get("/")
 async def root():
     return {
         "message": "SquadBox API çalışıyor",
@@ -23,21 +29,20 @@ async def root():
         "status": "healthy"
     }
 
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
+@router.get("/health")
+async def health_check(session: AsyncSession = Depends(get_db_session)):
+    try:
+        await session.connection()
+        return {"status": "ok", "database": "connected"}
+    except Exception as e:
+        return {"status": "error", "database": "disconnected", "detail": str(e)}
 
-@app.get("/api/v1/rooms")
-async def list_rooms():
-    return {"rooms": [], "count": 0}
+# Ana router'ı dahil et
+app.include_router(router)
 
-@app.post("/api/v1/rooms")
-async def create_room():
-    return {
-        "room_code": "AB12",
-        "status": "lobby",
-        "message": "Oda oluşturuldu"
-    }
+# Oyun router'larını modüler olarak dahil et
+app.include_router(taboo.router, prefix="/api/v1/taboo", tags=["Taboo"])
+app.include_router(spyfall.router, prefix="/api/v1/spyfall", tags=["Spyfall"])
 
 if __name__ == "__main__":
     import uvicorn

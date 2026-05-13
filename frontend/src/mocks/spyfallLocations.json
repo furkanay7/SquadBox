@@ -1,77 +1,42 @@
 [
   {
-    "id": 1,
-    "name": "Hastane",
-    "roles": ["Doktor", "Hemşire", "Hasta", "Cerrah", "Eczacı", "Ambulans Sürücüsü", "Temizlik Görevlisi", "CASPUS"]
+    "name": "Uzay İstasyonu",
+    "roles": ["Komutan", "Mühendis", "Bilim İnsanı", "Yabancı Turist", "Doktor", "Teknisyen", "Pilot", "CASPUS"]
   },
   {
-    "id": 2,
-    "name": "Okul",
-    "roles": ["Öğretmen", "Öğrenci", "Müdür", "Bekçi", "Kantinçi", "Temizlikçi", "Rehber Öğretmen", "CASPUS"]
+    "name": "Korsan Gemisi",
+    "roles": ["Kaptan", "Tayfa", "Esir", "Aşçı", "Gözcü", "Topçu", "Marangoz", "CASPUS"]
   },
   {
-    "id": 3,
-    "name": "Restoran",
-    "roles": ["Garson", "Şef", "Aşçı Yardımcısı", "Müdür", "Bulaşıkçı", "Müşteri", "Kasiyer", "CASPUS"]
+    "name": "Denizaltı",
+    "roles": ["Kaptan", "Sonar Operatörü", "Mühendis", "Aşçı", "Telsizci", "Dalgıç", "Teknisyen", "CASPUS"]
   },
   {
-    "id": 4,
-    "name": "Sinema",
-    "roles": ["Görevli", "Seyirci", "Yönetmen", "Popcorn Satıcısı", "Biletçi", "Oyuncu", "Kameraman", "CASPUS"]
+    "name": "Arkeolojik Kazı Alanı",
+    "roles": ["Baş Arkeolog", "İşçi", "Tarihçi", "Fotoğrafçı", "Güvenlik", "Turist", "Restoratör", "CASPUS"]
   },
   {
-    "id": 5,
-    "name": "Havaalanı",
-    "roles": ["Pilot", "Hostes", "Yolcu", "Güvenlik", "Bilet Kontrolörü", "Bagaj Taşıyıcı", "Kule Kontrolörü", "CASPUS"]
+    "name": "Kayak Merkezi",
+    "roles": ["Kayak Eğitmeni", "Turist", "Kurtarma Ekibi", "Otel Sahibi", "Ekipman Kiralayıcı", "Kafe Çalışanı", "Gondol Operatörü", "CASPUS"]
   },
   {
-    "id": 6,
-    "name": "Otel",
-    "roles": ["Resepsiyonist", "Misafir", "Oda Servisi", "Belboy", "Temizlikçi", "Müdür", "Komi", "CASPUS"]
+    "name": "Banka",
+    "roles": ["Banka Müdürü", "Veznedar", "Müşteri", "Güvenlik Görevlisi", "Kurye", "Müfettiş", "Temizlikçi", "CASPUS"]
   },
   {
-    "id": 7,
-    "name": "Stadyum",
-    "roles": ["Futbolcu", "Hakem", "Taraftar", "Antrenör", "Yorumcu", "Gazeteci", "Stadyum Görevlisi", "CASPUS"]
+    "name": "Düğün Salonu",
+    "roles": ["Gelin", "Damat", "Kaynana", "Fotoğrafçı", "Garson", "Müzisyen", "Davetli", "CASPUS"]
   },
   {
-    "id": 8,
-    "name": "Plaj",
-    "roles": ["Yüzücü", "Güneşlenici", "Cankurtaran", "Dondurma Satıcısı", "Sörfçü", "Kumdan Kale Yapan", "Balıkçı", "CASPUS"]
+    "name": "Askeri Üs",
+    "roles": ["General", "Nöbetçi Er", "Aşçı", "Doktor", "Casus Avcısı", "Mühendis", "Pilot", "CASPUS"]
   },
   {
-    "id": 9,
-    "name": "Tren",
-    "roles": ["Makinist", "Kondüktör", "Yolcu", "Gar Görevlisi", "Yemek Arabası", "Tren Mühendisi", "Bilet Kontrolörü", "CASPUS"]
+    "name": "Laboratuvar",
+    "roles": ["Baş Bilim İnsanı", "Asistan", "Deney Faresi Bakıcısı", "Güvenlik", "Müfettiş", "Kimyager", "Temizlikçi", "CASPUS"]
   },
   {
-    "id": 10,
-    "name": "Alışveriş Merkezi",
-    "roles": ["Kasiyer", "Müşteri", "Güvenlik", "Mağaza Müdürü", "Temizlikçi", "Kurye", "Manken", "CASPUS"]
-  },
-  {
-    "id": 11,
-    "name": "Polis Karakolu",
-    "roles": ["Polis Memuru", "Komiser", "Şüpheli", "Avukat", "Sekreter", "Müdahale Ekiibi", "Güvenlik Kamerası İzleyici", "CASPUS"]
-  },
-  {
-    "id": 12,
-    "name": "Kütüphane",
-    "roles": ["Kütüphaneci", "Öğrenci", "Araştırmacı", "Temizlikçi", "Güvenlik", "Okuyucu", "Yazar", "CASPUS"]
-  },
-  {
-    "id": 13,
-    "name": "Sirk",
-    "roles": ["Palyaço", "İdareci", "İzleyici", "Hayvan Terbiyecisi", "Akrobat", "Sihirbaz", "Görevli", "CASPUS"]
-  },
-  {
-    "id": 14,
-    "name": "Kampüs",
-    "roles": ["Öğrenci", "Profesör", "Rektör", "Kantin İşletmecisi", "Yurt Müdürü", "Kütüphaneci", "Spor Antrenörü", "CASPUS"]
-  },
-  {
-    "id": 15,
-    "name": "Gem",
-    "roles": ["Kaptan", "Denizci", "Yolcu", "Mühendis", "Aşçı", "Güverte Görevlisi", "Denizci", "CASPUS"]
+    "name": "Kutup Araştırma Merkezi",
+    "roles": ["Meteorolog", "Jeolog", "Aşçı", "Doktor", "Teknisyen", "Araştırmacı", "Lojistik Sorumlusu", "CASPUS"]
   }
 ]
