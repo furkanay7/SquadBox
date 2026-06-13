@@ -22,7 +22,7 @@ interface Game {
   playerCount: string;
   duration: string;
   color: string;
-  type: 'taboo' | 'spyfall' | 'whoisit' | 'truefalse' | 'songguess' | 'comingsoon';
+  type: 'taboo' | 'spyfall' | 'whoisit' | 'truefalse' | 'category' | 'comingsoon';
   disabled?: boolean;
 }
 
@@ -65,12 +65,12 @@ const games: Game[] = [
   },
   {
     id: '5',
-    title: 'Şarkı Bul',
-    description: 'Şarkı sözlerinden şarkıyı tahmin et! AI ile sonsuz müzik kategorisi.',
+    title: 'Kategori Yarışması',
+    description: 'AI bir kategori verir, sırayla kelime söyle! Tekrar edersen veya süre dolarsa elenisin.',
     playerCount: '2+ Oyuncu',
     duration: '10-20 dk',
     color: '#0891B2',
-    type: 'songguess',
+    type: 'category',
   },
   {
     id: '6',
@@ -127,8 +127,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     navigation.navigate('WhoIsIt', { gameType: 'whoisit' });
   } else if (item.type === 'truefalse') {
     navigation.navigate('TrueFalse', { gameType: 'truefalse' });
-  } else if (item.type === 'songguess') {
-    navigation.navigate('SongGuess', { gameType: 'songguess' });
+  } else if (item.type === 'category') {
+    navigation.navigate('CategoryGame', { gameType: 'category' });
   } else {
     navigation.navigate('Setup', { gameType: item.type });
   }

@@ -9,7 +9,7 @@ import { TabooGameScreen } from './src/screens/TabooGameScreen';
 import { SpyfallRoleScreen } from './src/screens/SpyfallRoleScreen';
 import { WhoIsItScreen } from './src/screens/WhoIsItScreen';
 import { TrueFalseScreen } from './src/screens/TrueFalseScreen';
-import { SongGuessScreen } from './src/screens/SongGuessScreen';
+import { CategoryGameScreen } from './src/screens/CategoryGameScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -30,7 +30,7 @@ function App() {
         <Stack.Screen name="SpyfallRole" component={SpyfallRoleScreen} />
         <Stack.Screen name="WhoIsIt" component={WhoIsItScreen} />
         <Stack.Screen name="TrueFalse" component={TrueFalseScreen} />
-        <Stack.Screen name="SongGuess" component={SongGuessScreen} />
+        <Stack.Screen name="CategoryGame" component={CategoryGameScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

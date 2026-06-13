@@ -323,3 +323,46 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
             raise HTTPException(status_code=500, detail="AI yanıtı parse edilemedi.")
         except httpx.HTTPError as e:
             raise HTTPException(status_code=502, detail=f"OpenAI API hatası: {str(e)}")
+        
+class AICategoryRequest(BaseModel):
+    topic: str
+
+@router.post("/generate/category")
+async def generate_category(request: AICategoryRequest):
+    if not OPENAI_API_KEY:
+        raise HTTPException(status_code=500, detail="OpenAI API anahtarı bulunamadı.")
+
+    prompt = f"""Sen bir Türkçe parti oyunu tasarımcısısın.
+'{request.topic}' konusuyla ilgili bir kategori yarışması kategorisi oluştur.
+Kategori açık ve net olsun, oyuncular bu kategoriden kelimeler sayabilsin.
+SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
+
+{{
+  "category": "kategori adı"
+}}"""
+
+    payload = {
+        "model": "gpt-4o-mini",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.8,
+        "response_format": {"type": "json_object"}
+    }
+
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            response = await client.post(OPENAI_URL, json=payload, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+            raw_text = data["choices"][0]["message"]["content"]
+            parsed = json.loads(raw_text)
+            category = parsed.get("category", request.topic)
+            return {"topic": request.topic, "category": category}
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=500, detail="AI yanıtı parse edilemedi.")
+        except httpx.HTTPError as e:
+            raise HTTPException(status_code=502, detail=f"OpenAI API hatası: {str(e)}")
