@@ -80,29 +80,34 @@ export const TabooGameScreen: React.FC<TabooGameScreenProps> = ({ navigation, ro
   const passDisabled = passLimit !== 999 && passesUsed >= passLimit;
 
 const aiCardIndex = React.useRef(0);
+const classicCards = React.useRef<any[]>([]);
+const classicCardIndex = React.useRef(0);
 
   const loadNewWord = async () => {
-    setIsLoadingWord(true);
-    
     if (gameMode === 'ai' && aiCards && aiCards.length > 0) {
       const index = aiCardIndex.current % aiCards.length;
       setCurrentWord(aiCards[index]);
       aiCardIndex.current += 1;
-    } else {
-      const data = await fetchRandomTabooWord();
-      if (data) {
-        setCurrentWord(data);
-      } else {
-        Alert.alert("Hata", "Kelime çekilemedi. Bilgisayar ile aynı Wi-Fi ağında mısınız?");
-      }
+    } else if (classicCards.current.length > 0) {
+      const index = classicCardIndex.current % classicCards.current.length;
+      setCurrentWord(classicCards.current[index]);
+      classicCardIndex.current += 1;
     }
-    
     setIsLoadingWord(false);
   };
 
 // Component yüklendiğinde ilk kelimeyi backend'den çek
-  useEffect(() => {
-    loadNewWord();
+useEffect(() => {
+    const preloadWords = async () => {
+      setIsLoadingWord(true);
+      if (gameMode !== 'ai') {
+        const promises = Array(20).fill(null).map(() => fetchRandomTabooWord());
+        const words = await Promise.all(promises);
+        classicCards.current = words.filter(Boolean);
+      }
+      loadNewWord();
+    };
+    preloadWords();
   }, []);
 
   useEffect(() => {

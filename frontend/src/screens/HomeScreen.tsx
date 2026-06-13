@@ -22,7 +22,7 @@ interface Game {
   playerCount: string;
   duration: string;
   color: string;
-  type: 'taboo' | 'spyfall' | 'comingsoon';
+  type: 'taboo' | 'spyfall' | 'whoisit' | 'truefalse' | 'werewolf' | 'comingsoon';
   disabled?: boolean;
 }
 
@@ -30,7 +30,7 @@ const games: Game[] = [
   {
     id: '1',
     title: 'Anlat Bakalım',
-    description: 'Yasak kelimeleri kullanmadan anlat! Kelime kartları, geri sayım sayacı ve kontrol butonları ile tam oyun deneyimi.',
+    description: 'Yasak kelimeleri kullanmadan anlat! AI modu ile kendi konunu seç.',
     playerCount: '4+ Oyuncu',
     duration: '15-30 dk',
     color: theme.colors.primary.main,
@@ -39,7 +39,7 @@ const games: Game[] = [
   {
     id: '2',
     title: 'Spyfall',
-    description: 'Hold-to-reveal mekanizmasıyla rol gösterimi. Kim casus? Lokasyonu bul veya gizli rolünü sakla!',
+    description: 'Kim casus? Lokasyonu bul veya gizli rolünü sakla!',
     playerCount: '3-10 Oyuncu',
     duration: '10-20 dk',
     color: theme.colors.secondary.main,
@@ -47,8 +47,35 @@ const games: Game[] = [
   },
   {
     id: '3',
+    title: 'Ben Kimim?',
+    description: 'Alnındaki kartı görmeden sorularla kim olduğunu bul! AI ile sonsuz karakter.',
+    playerCount: '3+ Oyuncu',
+    duration: '10-20 dk',
+    color: '#E11D48',
+    type: 'whoisit',
+  },
+  {
+    id: '4',
+    title: 'Doğru mu Yanlış mı?',
+    description: 'AI\'ın ürettiği sorulara doğru veya yanlış de! Kendi konunu seç.',
+    playerCount: '2+ Oyuncu',
+    duration: '10-15 dk',
+    color: '#D97706',
+    type: 'truefalse',
+  },
+  {
+    id: '5',
+    title: 'Vampir Köylü',
+    description: 'Vampirler geceyi, köylüler gündüzü yönetir. Kim vampir?',
+    playerCount: '5-15 Oyuncu',
+    duration: '20-40 dk',
+    color: '#7C3AED',
+    type: 'werewolf',
+  },
+  {
+    id: '6',
     title: 'Yakında...',
-    description: 'Yeni oyunlar çok yakında! Bizi takip etmeye devam edin, heyecan verici sürprizler geliyor.',
+    description: 'Yeni oyunlar çok yakında! Bizi takip etmeye devam edin.',
     playerCount: '? Oyuncu',
     duration: '? dk',
     color: theme.colors.background.tertiary,
@@ -94,7 +121,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       >
         <TouchableOpacity
           style={[styles.card, { backgroundColor: item.color }, item.disabled && styles.cardDisabled]}
-          onPress={() => !item.disabled && navigation.navigate('Setup', { gameType: item.type })}
+          onPress={() => {
+  if (item.disabled) return;
+  if (item.type === 'whoisit') {
+    navigation.navigate('WhoIsIt', { gameType: 'whoisit' });
+  } else if (item.type === 'truefalse') {
+    navigation.navigate('TrueFalse', { gameType: 'truefalse' });
+  } else if (item.type === 'werewolf') {
+    navigation.navigate('Werewolf', { gameType: 'werewolf' });
+  } else {
+    navigation.navigate('Setup', { gameType: item.type });
+  }
+}}
           activeOpacity={item.disabled ? 1 : 0.9}
           disabled={item.disabled}
         >

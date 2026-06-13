@@ -121,3 +121,48 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
             raise HTTPException(status_code=500, detail="AI yanıtı parse edilemedi.")
         except httpx.HTTPError as e:
             raise HTTPException(status_code=502, detail=f"OpenAI API hatası: {str(e)}")
+        
+
+class AIWhoIsItRequest(BaseModel):
+    topic: str
+    count: int = 10
+
+@router.post("/generate/whoisit")
+async def generate_whoisit_cards(request: AIWhoIsItRequest):
+    if not OPENAI_API_KEY:
+        raise HTTPException(status_code=500, detail="OpenAI API anahtarı bulunamadı.")
+
+    prompt = f"""Sen bir Türkçe parti oyunu tasarımcısısın.
+'{request.topic}' konusuyla ilgili 'Ben Kimim?' oyunu için {request.count} farklı karakter veya isim üret.
+Karakterler tanınabilir ve eğlenceli olsun.
+SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
+
+{{
+  "cards": ["karakter1", "karakter2", "karakter3"]
+}}"""
+
+    payload = {
+        "model": "gpt-4o-mini",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.9,
+        "response_format": {"type": "json_object"}
+    }
+
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            response = await client.post(OPENAI_URL, json=payload, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+            raw_text = data["choices"][0]["message"]["content"]
+            parsed = json.loads(raw_text)
+            cards = parsed.get("cards", [])
+            return {"topic": request.topic, "cards": cards}
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=500, detail="AI yanıtı parse edilemedi.")
+        except httpx.HTTPError as e:
+            raise HTTPException(status_code=502, detail=f"OpenAI API hatası: {str(e)}")

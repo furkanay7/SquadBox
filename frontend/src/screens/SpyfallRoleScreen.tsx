@@ -329,9 +329,12 @@ export const SpyfallRoleScreen: React.FC<SpyfallRoleScreenProps> = ({ navigation
               </TouchableOpacity>
             ))}
           </ScrollView>
-          <TouchableOpacity style={styles.backButton} onPress={() => setGamePhase('playing')}>
-            <Text style={styles.backButtonText}>Geri Dön</Text>
-          </TouchableOpacity>
+          <TouchableOpacity 
+  style={{backgroundColor: theme.colors.background.tertiary, padding: 15, borderRadius: 10, alignItems: 'center', marginBottom: 30, marginTop: 10}} 
+  onPress={() => setGamePhase('playing')}
+>
+  <Text style={{color: '#FFFFFF', fontSize: 16, fontWeight: '600'}}>Geri Dön</Text>
+</TouchableOpacity>
         </View>
       );
     }
@@ -415,9 +418,12 @@ export const SpyfallRoleScreen: React.FC<SpyfallRoleScreenProps> = ({ navigation
             </TouchableOpacity>
           ))}
         </ScrollView>
-        <TouchableOpacity style={styles.backButton} onPress={() => setGamePhase('playing')}>
-          <Text style={styles.backButtonText}>Geri Dön</Text>
-        </TouchableOpacity>
+        <TouchableOpacity 
+  style={{backgroundColor: theme.colors.background.tertiary, padding: 15, borderRadius: 10, alignItems: 'center', marginBottom: 30, marginTop: 10}} 
+  onPress={() => setGamePhase('playing')}
+>
+  <Text style={{color: '#FFFFFF', fontSize: 16, fontWeight: '600'}}>Geri Dön</Text>
+</TouchableOpacity>
       </View>
     );
   }

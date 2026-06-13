@@ -1,5 +1,5 @@
 // IP adresini az önce Wi-Fi altından bulduğun IPv4 adresi ile değiştir!
-const BASE_URL = 'https://enlarging-sash-unwed.ngrok-free.dev/api/v1'; 
+const BASE_URL = 'https://squadbox-production.up.railway.app/api/v1';
 
 export const fetchRandomTabooWord = async () => {
     try {
