@@ -9,16 +9,16 @@ interface CategoryGameScreenProps {
   navigation: any;
 }
 
-const CLASSIC_CATEGORIES = [
-  'Türk Şehirleri',
-  'Hayvanlar',
-  'Meyveler',
-  'Futbol Takımları',
-  'Ülkeler',
-  'Renk İsimleri',
-  'Türk Yemekleri',
-  'Meslekler',
-];
+const CLASSIC_WORD_LISTS: { [key: string]: string[] } = {
+  'Türkiye Şehirleri': ['istanbul', 'ankara', 'izmir', 'bursa', 'antalya', 'adana', 'konya', 'gaziantep', 'şanlıurfa', 'mersin', 'kayseri', 'eskişehir', 'trabzon', 'samsun', 'malatya', 'gebze', 'erzurum', 'denizli', 'van', 'batman', 'elazığ', 'diyarbakır', 'sakarya', 'manisa', 'balıkesir', 'kocaeli', 'muğla', 'tekirdağ', 'hatay', 'kahramanmaraş'],
+  'Hayvanlar': ['aslan', 'kaplan', 'fil', 'zürafa', 'penguen', 'köpek', 'kedi', 'at', 'inek', 'kuş', 'balık', 'yılan', 'timsah', 'ahtapot', 'köpekbalığı', 'kartal', 'baykuş', 'tavşan', 'ayı', 'kurt', 'tilki', 'maymun', 'goril', 'zebra', 'gergedan', 'hipopotam', 'deve', 'kanguru', 'koala', 'panda'],
+  'Meyveler': ['elma', 'armut', 'muz', 'portakal', 'çilek', 'kiraz', 'üzüm', 'karpuz', 'kavun', 'şeftali', 'erik', 'vişne', 'kayısı', 'ananas', 'mango', 'papaya', 'kivi', 'limon', 'mandalina', 'greyfurt', 'incir', 'nar', 'dut', 'ahududu', 'böğürtlen', 'yaban mersini', 'avokado', 'hindistancevizi', 'hurma', 'muşmula'],
+  'Futbol Takımları': ['galatasaray', 'fenerbahçe', 'beşiktaş', 'trabzonspor', 'bursaspor', 'başakşehir', 'sivasspor', 'konyaspor', 'antalyaspor', 'adanaspor', 'real madrid', 'barcelona', 'atletico madrid', 'manchester united', 'manchester city', 'liverpool', 'chelsea', 'arsenal', 'juventus', 'milan', 'inter', 'napoli', 'psg', 'bayern münih', 'dortmund', 'ajax', 'benfica', 'porto', 'roma', 'arsenal'],
+  'Ülkeler': ['türkiye', 'almanya', 'fransa', 'ispanya', 'italya', 'japonya', 'çin', 'hindistan', 'brezilya', 'arjantin', 'meksika', 'kanada', 'avustralya', 'rusya', 'mısır', 'güney afrika', 'nijerya', 'kenya', 'suudi arabistan', 'iran', 'irak', 'suriye', 'yunanistan', 'polonya', 'hollanda', 'belçika', 'isveç', 'norveç', 'danimarka', 'finlandiya'],
+  'Renk İsimleri': ['kırmızı', 'mavi', 'yeşil', 'sarı', 'turuncu', 'mor', 'pembe', 'beyaz', 'siyah', 'gri', 'kahverengi', 'lacivert', 'turkuaz', 'bordo', 'bej', 'krem', 'altın', 'gümüş', 'bronz', 'eflatun', 'leylak', 'mercan', 'limon sarısı', 'fıstık yeşili', 'kiremit', 'tarçın', 'şarap', 'zeytin yeşili', 'gece mavisi', 'pudra pembe'],
+  'Türk Yemekleri': ['kebap', 'köfte', 'dolma', 'sarma', 'börek', 'baklava', 'künefe', 'lahmacun', 'pide', 'mantı', 'mercimek çorbası', 'ezogelin', 'tarhana', 'pilav', 'makarna', 'karnıyarık', 'imam bayıldı', 'çorba', 'cacık', 'ayran', 'şiş kebap', 'adana kebap', 'urfa kebap', 'döner', 'iskender', 'çiğ köfte', 'gözleme', 'simit', 'poğaça', 'açma'],
+  'Meslekler': ['doktor', 'öğretmen', 'mühendis', 'avukat', 'hemşire', 'pilot', 'şef', 'mimar', 'psikolog', 'eczacı', 'diş hekimi', 'veteriner', 'polis', 'asker', 'itfaiyeci', 'gazeteci', 'oyuncu', 'müzisyen', 'ressam', 'sporcu', 'çiftçi', 'balıkçı', 'kasap', 'berber', 'terzi', 'şoför', 'tamirci', 'elektrikçi', 'tesisatçı', 'marangoz'],
+};
 
 export const CategoryGameScreen: React.FC<CategoryGameScreenProps> = ({ navigation }) => {
   const [phase, setPhase] = useState<'setup' | 'playing' | 'result'>('setup');
@@ -35,6 +35,7 @@ export const CategoryGameScreen: React.FC<CategoryGameScreenProps> = ({ navigati
   const [currentWord, setCurrentWord] = useState('');
   const [timeLeft, setTimeLeft] = useState(10);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [validWords, setValidWords] = useState<string[]>([]);
   const timerRef = useRef<any>(null);
 
   const addPlayer = () => {
@@ -62,7 +63,7 @@ export const CategoryGameScreen: React.FC<CategoryGameScreenProps> = ({ navigati
       });
       if (!response.ok) throw new Error('AI hatası');
       const data = await response.json();
-      return data.category;
+      return data;
     } catch {
       return null;
     }
@@ -76,21 +77,24 @@ export const CategoryGameScreen: React.FC<CategoryGameScreenProps> = ({ navigati
     }
 
     let cat = '';
+
     if (gameMode === 'ai') {
       if (!aiTopic.trim()) {
         Alert.alert('Konu Gerekli', 'Bir konu girin!');
         return;
       }
       setIsGenerating(true);
-      const aiCat = await getAICategory(aiTopic.trim());
+      const aiResult = await getAICategory(aiTopic.trim());
       setIsGenerating(false);
-      if (!aiCat) {
+      if (!aiResult) {
         Alert.alert('Hata', 'Kategori üretilemedi.');
         return;
       }
-      cat = aiCat;
+      cat = aiResult.category;
+      setValidWords(aiResult.words.map((w: string) => w.toLowerCase()));
     } else {
       cat = selectedCategory;
+      setValidWords(CLASSIC_WORD_LISTS[selectedCategory] || []);
     }
 
     setCategory(cat);
@@ -131,11 +135,17 @@ export const CategoryGameScreen: React.FC<CategoryGameScreenProps> = ({ navigati
     const word = currentWord.trim().toLowerCase();
     if (!word) return;
 
+    if (validWords.length > 0 && !validWords.includes(word)) {
+      Alert.alert('❌ Geçersiz!', `"${currentWord}" bu kategoriye ait değil! ${alivePlayers[currentPlayerIndex]} elendi.`,
+        [{ text: 'Tamam', onPress: () => handleEliminate('invalid') }]
+      );
+      clearInterval(timerRef.current);
+      return;
+    }
+
     if (usedWords.includes(word)) {
       clearInterval(timerRef.current);
-      Alert.alert(
-        '❌ Tekrar!',
-        `"${currentWord}" daha önce söylendi! ${alivePlayers[currentPlayerIndex]} elendi.`,
+      Alert.alert('❌ Tekrar!', `"${currentWord}" daha önce söylendi! ${alivePlayers[currentPlayerIndex]} elendi.`,
         [{ text: 'Tamam', onPress: () => handleEliminate('repeat') }]
       );
       return;
@@ -147,7 +157,7 @@ export const CategoryGameScreen: React.FC<CategoryGameScreenProps> = ({ navigati
     nextPlayer();
   };
 
-  const handleEliminate = (reason: 'timeout' | 'repeat') => {
+ const handleEliminate = (reason: 'timeout' | 'repeat' | 'invalid') => {
     const eliminated = alivePlayers[currentPlayerIndex];
     const newAlive = alivePlayers.filter((_, i) => i !== currentPlayerIndex);
     setEliminatedPlayers(prev => [...prev, eliminated]);
@@ -312,17 +322,6 @@ export const CategoryGameScreen: React.FC<CategoryGameScreenProps> = ({ navigati
 
         <View style={styles.playerBanner}>
           <Text style={styles.playerBannerText}>🎯 {currentPlayer}'in sırası</Text>
-        </View>
-
-        <View style={styles.usedWordsContainer}>
-          <Text style={styles.usedWordsTitle}>Söylenen Kelimeler ({usedWords.length})</Text>
-          <ScrollView style={styles.usedWordsList} horizontal showsHorizontalScrollIndicator={false}>
-            {usedWords.map((word, idx) => (
-              <View key={idx} style={styles.usedWordChip}>
-                <Text style={styles.usedWordText}>{word}</Text>
-              </View>
-            ))}
-          </ScrollView>
         </View>
 
         <View style={styles.inputContainer}>

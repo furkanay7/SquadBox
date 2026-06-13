@@ -333,12 +333,12 @@ async def generate_category(request: AICategoryRequest):
         raise HTTPException(status_code=500, detail="OpenAI API anahtarı bulunamadı.")
 
     prompt = f"""Sen bir Türkçe parti oyunu tasarımcısısın.
-'{request.topic}' konusuyla ilgili bir kategori yarışması kategorisi oluştur.
-Kategori açık ve net olsun, oyuncular bu kategoriden kelimeler sayabilsin.
+'{request.topic}' konusuyla ilgili bir kategori yarışması için kategori adı ve o kategoriye ait 100 kelime üret.
 SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
 
 {{
-  "category": "kategori adı"
+  "category": "kategori adı",
+  "words": ["kelime1", "kelime2", "kelime3", ...]
 }}"""
 
     payload = {
@@ -361,7 +361,8 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
             raw_text = data["choices"][0]["message"]["content"]
             parsed = json.loads(raw_text)
             category = parsed.get("category", request.topic)
-            return {"topic": request.topic, "category": category}
+            words = parsed.get("words", [])
+            return {"topic": request.topic, "category": category, "words": words}
         except json.JSONDecodeError:
             raise HTTPException(status_code=500, detail="AI yanıtı parse edilemedi.")
         except httpx.HTTPError as e:
