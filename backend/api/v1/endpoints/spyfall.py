@@ -2,8 +2,8 @@ import random
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
-from backend.database import get_db_session
-from backend.models import Spyfall
+from database import get_db_session
+from models import Spyfall
 from typing import List
 
 router = APIRouter()

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
-from backend.database import get_db_session
-from backend.models import Taboo
+from database import get_db_session
+from models import Taboo
 
 router = APIRouter()
 
