@@ -1,8 +1,8 @@
 from fastapi import FastAPI, APIRouter, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.database import get_db_session
-from backend.api.v1.endpoints import taboo, spyfall, ai
+from database import get_db_session
+from api.v1.endpoints import taboo, spyfall, ai
 
 app = FastAPI(
     title="SquadBox API",
