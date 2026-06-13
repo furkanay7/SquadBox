@@ -26,6 +26,8 @@ export const TabooGameScreen: React.FC<TabooGameScreenProps> = ({ navigation, ro
     currentRound = 1,
     teamAScore = 0,
     teamBScore = 0,
+    aiCards = null,
+    gameMode = 'classic',
   } = route.params || {
     players: [{ name: 'Oyuncu 1' }, { name: 'Oyuncu 2' }, { name: 'Oyuncu 3' }, { name: 'Oyuncu 4' }],
     timer: 60,
@@ -74,16 +76,27 @@ export const TabooGameScreen: React.FC<TabooGameScreenProps> = ({ navigation, ro
     teamB: teamBScore,
   });
 
+  const isGameEnded = React.useRef(false);
   const passDisabled = passLimit !== 999 && passesUsed >= passLimit;
 
-const loadNewWord = async () => {
+const aiCardIndex = React.useRef(0);
+
+  const loadNewWord = async () => {
     setIsLoadingWord(true);
-    const data = await fetchRandomTabooWord();
-    if (data) {
-      setCurrentWord(data);
+    
+    if (gameMode === 'ai' && aiCards && aiCards.length > 0) {
+      const index = aiCardIndex.current % aiCards.length;
+      setCurrentWord(aiCards[index]);
+      aiCardIndex.current += 1;
     } else {
-      Alert.alert("Hata", "Kelime çekilemedi. Bilgisayar ile aynı Wi-Fi ağında mısınız?");
+      const data = await fetchRandomTabooWord();
+      if (data) {
+        setCurrentWord(data);
+      } else {
+        Alert.alert("Hata", "Kelime çekilemedi. Bilgisayar ile aynı Wi-Fi ağında mısınız?");
+      }
     }
+    
     setIsLoadingWord(false);
   };
 
@@ -108,7 +121,8 @@ const loadNewWord = async () => {
     return () => clearInterval(interval);
   }, [isPlaying, timeLeft]);
 
-  const handleTurnEnd = () => {
+const handleTurnEnd = () => {
+    if (isGameEnded.current) return;
     setIsPlaying(false);
     
     // Increment global turn counter
@@ -220,6 +234,8 @@ const loadNewWord = async () => {
   };
 
   const endGame = () => {
+    isGameEnded.current = true;
+    setIsPlaying(false);
     setGamePhase('scoreboard');
   };
 
@@ -373,13 +389,17 @@ const loadNewWord = async () => {
           <Text style={styles.word}>⏳ Kelime Geliyor...</Text>
         ) : (
           <>
-            <Text style={styles.word}>{currentWord?.word}</Text>
+            <Text style={styles.word}>
+              {currentWord?.word ? currentWord.word.charAt(0).toUpperCase() + currentWord.word.slice(1) : ''}
+            </Text>
             <View style={styles.divider} />
             <Text style={styles.forbiddenTitle}>YASAK KELİMELER:</Text>
             {/* Backend'den gelen forbidden_words JSON verisini haritalıyoruz */}
             {(currentWord?.forbidden_words || []).map((word: string, index: number) => (
-              <Text key={index} style={styles.forbiddenWord}>{word}</Text>
-            ))}
+  <Text key={index} style={styles.forbiddenWord}>
+    {word ? word.charAt(0).toUpperCase() + word.slice(1) : ''}
+  </Text>
+))}
           </>
         )}
       </View>

@@ -9,8 +9,11 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { theme } from '../theme/theme';
+import { generateAITabooCards, generateAISpyfallLocations } from '../services/api';
+
 
 interface Player {
   id: string;
@@ -25,11 +28,9 @@ interface SetupScreenProps {
 export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) => {
   const gameType = route.params?.gameType || 'taboo';
   
-  // Team names for Taboo (fixed 2 teams)
   const [teamAName, setTeamAName] = useState('Takım A');
   const [teamBName, setTeamBName] = useState('Takım B');
   
-  // Default players based on game type
   const defaultPlayers = gameType === 'taboo' ? 4 : 3;
   const [players, setPlayers] = useState<Player[]>(() => 
     Array.from({ length: defaultPlayers }, (_, i) => ({
@@ -40,7 +41,12 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
   
   const [timer, setTimer] = useState(60);
   const [rounds, setRounds] = useState(3);
-  const [passLimit, setPassLimit] = useState(3); // Pass limit for Taboo
+  const [passLimit, setPassLimit] = useState(3);
+
+  // AI Modu
+  const [gameMode, setGameMode] = useState<'classic' | 'ai'>('classic');
+  const [aiTopic, setAiTopic] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const addPlayer = () => {
     if (players.length >= 10) {
@@ -64,7 +70,6 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
     setPlayers(players.map(p => p.id === id ? { ...p, name } : p));
   };
 
-  // Validation
   const validPlayers = useMemo(() => 
     players.filter(p => p.name.trim() !== ''),
     [players]
@@ -75,7 +80,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
     return validPlayers.length >= minPlayers;
   }, [validPlayers, gameType]);
 
-  const startGame = () => {
+  const startGame = async () => {
     const minPlayers = gameType === 'taboo' ? 4 : 3;
     
     if (validPlayers.length < minPlayers) {
@@ -84,24 +89,83 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
     }
 
     if (gameType === 'taboo') {
-      navigation.navigate('TabooTurnIntro', {
-        players: validPlayers,
-        timer,
-        rounds,
-        passLimit,
-        teamAName: teamAName.trim() || 'Takım A',
-        teamBName: teamBName.trim() || 'Takım B',
-        currentPlayerIndex: 0,
-        currentRound: 1,
-        teamAScore: 0,
-        teamBScore: 0,
-      });
+      if (gameMode === 'ai') {
+        if (!aiTopic.trim()) {
+          Alert.alert('Konu Gerekli', 'AI modu için bir konu girin!');
+          return;
+        }
+        
+        setIsGenerating(true);
+        const cardCount = Math.max(20, rounds * 12);
+        const cards = await generateAITabooCards(aiTopic.trim(), cardCount);
+        setIsGenerating(false);
+        
+        if (!cards) {
+          Alert.alert('Hata', 'AI kartları üretilemedi. Bağlantınızı kontrol edin.');
+          return;
+        }
+
+        navigation.navigate('TabooTurnIntro', {
+          players: validPlayers,
+          timer,
+          rounds,
+          passLimit,
+          teamAName: teamAName.trim() || 'Takım A',
+          teamBName: teamBName.trim() || 'Takım B',
+          currentPlayerIndex: 0,
+          currentRound: 1,
+          teamAScore: 0,
+          teamBScore: 0,
+          aiCards: cards,
+          gameMode: 'ai',
+        });
+      } else {
+        navigation.navigate('TabooTurnIntro', {
+          players: validPlayers,
+          timer,
+          rounds,
+          passLimit,
+          teamAName: teamAName.trim() || 'Takım A',
+          teamBName: teamBName.trim() || 'Takım B',
+          currentPlayerIndex: 0,
+          currentRound: 1,
+          teamAScore: 0,
+          teamBScore: 0,
+          aiCards: null,
+          gameMode: 'classic',
+        });
+      }
     } else {
-      navigation.navigate('SpyfallRole', {
-        players: validPlayers,
-        rounds,
-        currentRound: 1,
-      });
+      if (gameMode === 'ai') {
+        if (!aiTopic.trim()) {
+          Alert.alert('Tema Gerekli', 'AI modu için bir tema girin!');
+          return;
+        }
+        setIsGenerating(true);
+        const locations = await generateAISpyfallLocations(aiTopic.trim());
+        setIsGenerating(false);
+
+        if (!locations) {
+          Alert.alert('Hata', 'AI lokasyonları üretilemedi. Bağlantınızı kontrol edin.');
+          return;
+        }
+
+        navigation.navigate('SpyfallRole', {
+          players: validPlayers,
+          rounds,
+          currentRound: 1,
+          aiLocations: locations,
+          gameMode: 'ai',
+        });
+      } else {
+        navigation.navigate('SpyfallRole', {
+          players: validPlayers,
+          rounds,
+          currentRound: 1,
+          aiLocations: null,
+          gameMode: 'classic',
+        });
+      }
     }
   };
 
@@ -110,7 +174,6 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
       style={styles.container} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>SquadBox</Text>
         <Text style={styles.subtitle}>
@@ -118,13 +181,12 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
         </Text>
       </View>
 
-      {/* Scrollable Content */}
       <ScrollView 
         style={styles.scrollContent}
         contentContainerStyle={styles.scrollContentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* Team Names Section - Only for Taboo */}
+        {/* Takım İsimleri - Sadece Tabu */}
         {gameType === 'taboo' && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Takım İsimleri</Text>
@@ -158,7 +220,54 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
           </View>
         )}
 
-        {/* Players Section */}
+        {/* AI Modu Seçimi - Tabu ve Spyfall */}
+        {(gameType === 'taboo' || gameType === 'spyfall') && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Oyun Modu</Text>
+            <View style={styles.modeContainer}>
+              <TouchableOpacity
+                style={[styles.modeButton, gameMode === 'classic' && styles.modeButtonActive]}
+                onPress={() => setGameMode('classic')}
+              >
+                <Text style={styles.modeIcon}>🃏</Text>
+                <Text style={[styles.modeTitle, gameMode === 'classic' && styles.modeTitleActive]}>
+                  Klasik
+                </Text>
+                <Text style={styles.modeDesc}>Hazır kelime destesi</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modeButton, gameMode === 'ai' && styles.modeButtonActiveAI]}
+                onPress={() => setGameMode('ai')}
+              >
+                <Text style={styles.modeIcon}>🤖</Text>
+                <Text style={[styles.modeTitle, gameMode === 'ai' && styles.modeTitleActive]}>
+                  AI Modu
+                </Text>
+                <Text style={styles.modeDesc}>Kendi konunu seç</Text>
+              </TouchableOpacity>
+            </View>
+
+            {gameMode === 'ai' && (
+              <View style={styles.aiTopicContainer}>
+                <Text style={styles.aiTopicLabel}>Konu Gir</Text>
+                <TextInput
+                  style={styles.aiTopicInput}
+                  placeholder={gameType === 'taboo' ? "Örn: Yazılımcı Jargonu, 90'lar Pop Müziği..." : "Örn: Uzay, Orta Çağ, Korku Filmleri..."}
+                  placeholderTextColor="#64748B"
+                  value={aiTopic}
+                  onChangeText={setAiTopic}
+                  maxLength={50}
+                />
+                <Text style={styles.aiHint}>
+                  🤖 AI bu konuya özel 15 Tabu kartı üretecek
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Oyuncular */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Oyuncular</Text>
           <Text style={styles.hintText}>
@@ -169,20 +278,14 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
             <View key={player.id} style={styles.playerRow}>
               <Text style={styles.playerNumber}>{index + 1}.</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  player.name.trim() === '' && styles.inputEmpty
-                ]}
+                style={[styles.input, player.name.trim() === '' && styles.inputEmpty]}
                 placeholder={`Oyuncu ${index + 1} ismi`}
                 placeholderTextColor="#64748B"
                 value={player.name}
                 onChangeText={(text) => updatePlayerName(player.id, text)}
                 maxLength={20}
               />
-              <TouchableOpacity
-                style={styles.removeButton}
-                onPress={() => removePlayer(player.id)}
-              >
+              <TouchableOpacity style={styles.removeButton} onPress={() => removePlayer(player.id)}>
                 <Text style={styles.removeButtonText}>×</Text>
               </TouchableOpacity>
             </View>
@@ -193,11 +296,10 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
           </TouchableOpacity>
         </View>
 
-        {/* Settings Section */}
+        {/* Oyun Ayarları */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Oyun Ayarları</Text>
           
-          {/* Timer - Only for Taboo */}
           {gameType === 'taboo' && (
             <View style={styles.settingRow}>
               <Text style={styles.settingLabel}>Süre (saniye)</Text>
@@ -217,7 +319,6 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
             </View>
           )}
 
-          {/* Rounds */}
           <View style={styles.settingRow}>
             <Text style={styles.settingLabel}>Tur Sayısı</Text>
             <View style={styles.timerButtons}>
@@ -235,7 +336,6 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
             </View>
           </View>
 
-          {/* Pass Limit - Only for Taboo */}
           {gameType === 'taboo' && (
             <View style={styles.settingRow}>
               <Text style={styles.settingLabel}>Pas Hakkı</Text>
@@ -256,26 +356,31 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
           )}
         </View>
 
-        {/* Bottom Spacer for Fixed Buttons */}
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* Fixed Bottom Buttons */}
       <View style={styles.fixedFooter}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>Geri</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={[styles.startButton, !canStartGame && styles.startButtonDisabled]} 
+          style={[styles.startButton, (!canStartGame || isGenerating) && styles.startButtonDisabled]} 
           onPress={startGame}
-          disabled={!canStartGame}
+          disabled={!canStartGame || isGenerating}
         >
-          <Text style={styles.startButtonText}>
-            {!canStartGame 
-              ? `En az ${gameType === 'taboo' ? '4' : '3'} oyuncu` 
-              : 'Oyunu Başlat'}
-          </Text>
+          {isGenerating ? (
+            <View style={styles.generatingContainer}>
+              <ActivityIndicator color="#FFFFFF" size="small" />
+              <Text style={styles.startButtonText}> AI üretiyor...</Text>
+            </View>
+          ) : (
+            <Text style={styles.startButtonText}>
+              {!canStartGame 
+                ? `En az ${gameType === 'taboo' ? '4' : '3'} oyuncu` 
+                : gameMode === 'ai' ? '🤖 AI ile Başlat' : 'Oyunu Başlat'}
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -283,211 +388,54 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background.primary,
-  },
-  header: {
-    padding: 20,
-    paddingTop: 60,
-    alignItems: 'center',
-    backgroundColor: theme.colors.background.primary,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.background.secondary,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: theme.colors.text.primary,
-    marginBottom: 5,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: theme.colors.primary.main,
-    fontWeight: '600',
-  },
-  scrollContent: {
-    flex: 1,
-  },
-  scrollContentContainer: {
-    padding: 20,
-  },
-  section: {
-    marginBottom: 25,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#F8FAFC',
-    marginBottom: 15,
-  },
-  hintText: {
-    fontSize: 14,
-    color: '#F59E0B',
-    marginBottom: 10,
-    fontStyle: 'italic',
-  },
-  teamRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  teamInputContainer: {
-    flex: 1,
-  },
-  teamLabel: {
-    fontSize: 14,
-    color: '#94A3B8',
-    marginBottom: 6,
-  },
-  teamInput: {
-    backgroundColor: '#1E293B',
-    borderRadius: 10,
-    padding: 12,
-    color: '#F8FAFC',
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  teamVs: {
-    paddingHorizontal: 10,
-    paddingTop: 20,
-  },
-  teamVsText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#6366F1',
-  },
-  playerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    gap: 10,
-  },
-  playerNumber: {
-    color: '#64748B',
-    fontSize: 16,
-    width: 25,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: '#1E293B',
-    borderRadius: 10,
-    padding: 12,
-    color: '#F8FAFC',
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  inputEmpty: {
-    borderColor: '#475569',
-    borderStyle: 'dashed',
-  },
-  removeButton: {
-    backgroundColor: '#EF4444',
-    borderRadius: 20,
-    width: 30,
-    height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  removeButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  addButton: {
-    backgroundColor: '#334155',
-    padding: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 10,
-    borderWidth: 2,
-    borderColor: '#6366F1',
-    borderStyle: 'dashed',
-  },
-  addButtonText: {
-    color: '#6366F1',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  settingRow: {
-    marginBottom: 20,
-  },
-  settingLabel: {
-    color: '#CBD5E1',
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  timerButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  timerButton: {
-    backgroundColor: '#1E293B',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#334155',
-    minWidth: 50,
-    alignItems: 'center',
-  },
-  timerButtonActive: {
-    backgroundColor: '#6366F1',
-    borderColor: '#6366F1',
-  },
-  timerButtonText: {
-    color: '#CBD5E1',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  timerButtonTextActive: {
-    color: '#FFFFFF',
-  },
-  bottomSpacer: {
-    height: 100, // Space for fixed footer
-  },
-  fixedFooter: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    padding: 20,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
-    backgroundColor: '#0F172A',
-    borderTopWidth: 1,
-    borderTopColor: '#1E293B',
-    gap: 10,
-  },
-  backButton: {
-    flex: 1,
-    backgroundColor: '#334155',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  backButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  startButton: {
-    flex: 2,
-    backgroundColor: '#6366F1',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  startButtonDisabled: {
-    backgroundColor: '#334155',
-    opacity: 0.6,
-  },
-  startButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  container: { flex: 1, backgroundColor: theme.colors.background.primary },
+  header: { padding: 20, paddingTop: 60, alignItems: 'center', backgroundColor: theme.colors.background.primary, borderBottomWidth: 1, borderBottomColor: theme.colors.background.secondary },
+  title: { fontSize: 28, fontWeight: 'bold', color: theme.colors.text.primary, marginBottom: 5 },
+  subtitle: { fontSize: 18, color: theme.colors.primary.main, fontWeight: '600' },
+  scrollContent: { flex: 1 },
+  scrollContentContainer: { padding: 20 },
+  section: { marginBottom: 25 },
+  sectionTitle: { fontSize: 18, fontWeight: '600', color: '#F8FAFC', marginBottom: 15 },
+  hintText: { fontSize: 14, color: '#F59E0B', marginBottom: 10, fontStyle: 'italic' },
+  teamRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  teamInputContainer: { flex: 1 },
+  teamLabel: { fontSize: 14, color: '#94A3B8', marginBottom: 6 },
+  teamInput: { backgroundColor: '#1E293B', borderRadius: 10, padding: 12, color: '#F8FAFC', fontSize: 16, borderWidth: 1, borderColor: '#334155' },
+  teamVs: { paddingHorizontal: 10, paddingTop: 20 },
+  teamVsText: { fontSize: 16, fontWeight: 'bold', color: '#6366F1' },
+  modeContainer: { flexDirection: 'row', gap: 12, marginBottom: 15 },
+  modeButton: { flex: 1, backgroundColor: '#1E293B', borderRadius: 12, padding: 16, alignItems: 'center', borderWidth: 2, borderColor: '#334155' },
+  modeButtonActive: { borderColor: '#6366F1', backgroundColor: '#1E1B4B' },
+  modeButtonActiveAI: { borderColor: '#10B981', backgroundColor: '#022C22' },
+  modeIcon: { fontSize: 28, marginBottom: 8 },
+  modeTitle: { fontSize: 16, fontWeight: 'bold', color: '#94A3B8', marginBottom: 4 },
+  modeTitleActive: { color: '#FFFFFF' },
+  modeDesc: { fontSize: 12, color: '#64748B', textAlign: 'center' },
+  aiTopicContainer: { backgroundColor: '#022C22', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#10B981' },
+  aiTopicLabel: { fontSize: 14, color: '#10B981', fontWeight: '600', marginBottom: 8 },
+  aiTopicInput: { backgroundColor: '#1E293B', borderRadius: 10, padding: 12, color: '#F8FAFC', fontSize: 16, borderWidth: 1, borderColor: '#334155', marginBottom: 8 },
+  aiHint: { fontSize: 12, color: '#64748B' },
+  playerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 10 },
+  playerNumber: { color: '#64748B', fontSize: 16, width: 25 },
+  input: { flex: 1, backgroundColor: '#1E293B', borderRadius: 10, padding: 12, color: '#F8FAFC', fontSize: 16, borderWidth: 1, borderColor: '#334155' },
+  inputEmpty: { borderColor: '#475569', borderStyle: 'dashed' },
+  removeButton: { backgroundColor: '#EF4444', borderRadius: 20, width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
+  removeButtonText: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
+  addButton: { backgroundColor: '#334155', padding: 12, borderRadius: 10, alignItems: 'center', marginTop: 10, borderWidth: 2, borderColor: '#6366F1', borderStyle: 'dashed' },
+  addButtonText: { color: '#6366F1', fontSize: 16, fontWeight: '600' },
+  settingRow: { marginBottom: 20 },
+  settingLabel: { color: '#CBD5E1', fontSize: 16, marginBottom: 10 },
+  timerButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  timerButton: { backgroundColor: '#1E293B', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8, borderWidth: 1, borderColor: '#334155', minWidth: 50, alignItems: 'center' },
+  timerButtonActive: { backgroundColor: '#6366F1', borderColor: '#6366F1' },
+  timerButtonText: { color: '#CBD5E1', fontSize: 14, fontWeight: '600' },
+  timerButtonTextActive: { color: '#FFFFFF' },
+  bottomSpacer: { height: 100 },
+  fixedFooter: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', padding: 20, paddingBottom: Platform.OS === 'ios' ? 40 : 20, backgroundColor: '#0F172A', borderTopWidth: 1, borderTopColor: '#1E293B', gap: 10 },
+  backButton: { flex: 1, backgroundColor: '#334155', padding: 15, borderRadius: 10, alignItems: 'center' },
+  backButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  startButton: { flex: 2, backgroundColor: '#6366F1', padding: 15, borderRadius: 10, alignItems: 'center' },
+  startButtonDisabled: { backgroundColor: '#334155', opacity: 0.6 },
+  startButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
+  generatingContainer: { flexDirection: 'row', alignItems: 'center' },
 });

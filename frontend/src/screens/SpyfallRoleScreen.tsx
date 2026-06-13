@@ -35,6 +35,8 @@ export const SpyfallRoleScreen: React.FC<SpyfallRoleScreenProps> = ({ navigation
   const rounds = params.rounds || 3;
   const currentRound = params.currentRound || 1;
   const previousScores = params.previousScores || null;
+  const aiLocations = params.aiLocations || null;
+  const gameMode = params.gameMode || 'classic';
 
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,38 +61,54 @@ export const SpyfallRoleScreen: React.FC<SpyfallRoleScreenProps> = ({ navigation
   const startNewRound = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchSpyfallStart(players.length);
-      
-      // BACKEND İLE UYUM SAĞLANDI: Artık data.players içindeki rolleri okuyoruz
-      if (data && data.players) {
-        
-        // 1. Rolleri backend'in gönderdiği formattan temiz bir string dizisine çevir
-        const parsedRoles = data.players.map((p: any) => p.role);
-        
-        // 2. Casusun index'ini bul (Backend "CASPUS" diye yolluyor)
-        const sIndex = data.players.findIndex((p: any) => p.role === "CASPUS" || p.role === "CASUS");
+      let locationData;
 
-        // 3. Lokasyonu al
-        const safeLocation = data.location || "Bilinmeyen Yer";
+      if (gameMode === 'ai' && aiLocations && aiLocations.length > 0) {
+        const randomLocation = aiLocations[Math.floor(Math.random() * aiLocations.length)];
+        const availableRoles = [...randomLocation.roles];
+        const spyIdx = Math.floor(Math.random() * players.length);
+        
+        const finalPlayers = players.map((_: any, idx: number) => {
+          if (idx === spyIdx) return { role: 'CASPUS', location: '???' };
+          const role = availableRoles.length > 0 
+            ? availableRoles.splice(Math.floor(Math.random() * availableRoles.length), 1)[0]
+            : 'Sıradan Vatandaş';
+          return { role, location: randomLocation.name };
+        });
 
         setGameState({
-          location: safeLocation,
-          spyIndex: sIndex !== -1 ? sIndex : 0, // Eğer bulamazsa çökmemesi için 0'a eşitle
+          location: randomLocation.name,
+          spyIndex: spyIdx,
           currentPlayerIndex: 0,
-          roles: parsedRoles,
+          roles: finalPlayers.map((p: any) => p.role),
         });
-        
-        setShowingRole(false);
-        setHasSeenRole(new Array(players.length).fill(false));
-        setGamePhase('roleReveal');
-        setTimeLeft(480);
-        setIsTimerRunning(false);
       } else {
-        Alert.alert("Hata", "Sunucudan veri boş döndü!");
+        const data = await fetchSpyfallStart(players.length);
+        
+        if (data && data.players) {
+          const parsedRoles = data.players.map((p: any) => p.role);
+          const sIndex = data.players.findIndex((p: any) => p.role === 'CASPUS' || p.role === 'CASUS');
+          const safeLocation = data.location || 'Bilinmeyen Yer';
+
+          setGameState({
+            location: safeLocation,
+            spyIndex: sIndex !== -1 ? sIndex : 0,
+            currentPlayerIndex: 0,
+            roles: parsedRoles,
+          });
+        } else {
+          Alert.alert('Hata', 'Sunucudan veri boş döndü!');
+        }
       }
+
+      setShowingRole(false);
+      setHasSeenRole(new Array(players.length).fill(false));
+      setGamePhase('roleReveal');
+      setTimeLeft(480);
+      setIsTimerRunning(false);
     } catch (err) {
-      console.error("Round başlatılamadı:", err);
-      Alert.alert("Hata", "Oyun başlatılırken bir sorun oluştu.");
+      console.error('Round başlatılamadı:', err);
+      Alert.alert('Hata', 'Oyun başlatılırken bir sorun oluştu.');
     } finally {
       setIsLoading(false);
     }
@@ -209,6 +227,8 @@ export const SpyfallRoleScreen: React.FC<SpyfallRoleScreenProps> = ({ navigation
             rounds,
             currentRound: currentRound + 1,
             previousScores: updatedScores,
+            aiLocations,
+            gameMode,
           });
         }}]
       );
@@ -289,13 +309,51 @@ export const SpyfallRoleScreen: React.FC<SpyfallRoleScreenProps> = ({ navigation
   }
 
   if (gamePhase === 'locationGuide' || gamePhase === 'guessLocation') {
+    const locationList = gameMode === 'ai' && aiLocations 
+      ? aiLocations.map((l: any) => l.name)
+      : ['Hastane', 'Uzay Gemisi', 'Kumarhane', 'Okul', 'Plaj', 'Tren İstasyonu', 
+         'Restoran', 'Banka', 'Otel', 'Sirk', 'Denizaltı', 'Karakol',
+         'Süpermarket', 'Sinema', 'Spor Salonu'];
+
+    if (gamePhase === 'guessLocation') {
+      return (
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Lokasyon Tahmini</Text>
+            <Text style={styles.subtitle}>Casus olarak lokasyonu tahmin et:</Text>
+          </View>
+          <ScrollView style={styles.votingContainer}>
+            {locationList.map((loc: string, index: number) => (
+              <TouchableOpacity key={index} style={styles.voteCard} onPress={() => guessLocation(loc)}>
+                <Text style={styles.voteCardText}>{loc}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          <TouchableOpacity style={styles.backButton} onPress={() => setGamePhase('playing')}>
+            <Text style={styles.backButtonText}>Geri Dön</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={{ fontSize: 20, color: '#fff', textAlign: 'center', marginBottom: 20 }}>
-          Lokasyon listesi yakında sunucudan çekilecektir.
-        </Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => setGamePhase('playing')}>
-          <Text style={styles.backButtonText}>Oyuna Dön</Text>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>📍 Lokasyon Rehberi</Text>
+          <Text style={styles.subtitle}>Mümkün lokasyonlar:</Text>
+        </View>
+        <ScrollView style={{flex: 1}} contentContainerStyle={{gap: 10, paddingBottom: 20}}>
+          {locationList.map((loc: string, index: number) => (
+            <View key={index} style={[styles.voteCard, { borderColor: '#334155' }]}>
+              <Text style={styles.voteCardText}>{loc}</Text>
+            </View>
+          ))}
+        </ScrollView>
+        <TouchableOpacity 
+          style={{backgroundColor: theme.colors.background.tertiary, padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 10, marginBottom: 30}} 
+          onPress={() => setGamePhase('playing')}
+        >
+          <Text style={{color: '#FFFFFF', fontSize: 16, fontWeight: '600'}}>Oyuna Dön</Text>
         </TouchableOpacity>
       </View>
     );

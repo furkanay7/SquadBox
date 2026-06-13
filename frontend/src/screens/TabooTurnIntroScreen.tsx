@@ -23,6 +23,8 @@ export const TabooTurnIntroScreen: React.FC<TabooTurnIntroScreenProps> = ({ navi
     currentRound,
     teamAScore,
     teamBScore,
+    aiCards = null,
+    gameMode = 'classic',
   } = route.params;
 
   // Determine current team and player
@@ -45,6 +47,8 @@ export const TabooTurnIntroScreen: React.FC<TabooTurnIntroScreenProps> = ({ navi
       teamBScore,
       currentPlayerName: currentPlayer.name,
       currentTeamName,
+      aiCards: route.params?.aiCards || null,
+      gameMode: route.params?.gameMode || 'classic',
     });
   };
 
