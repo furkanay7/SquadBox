@@ -22,7 +22,7 @@ interface Game {
   playerCount: string;
   duration: string;
   color: string;
-  type: 'taboo' | 'spyfall' | 'whoisit' | 'truefalse' | 'werewolf' | 'comingsoon';
+  type: 'taboo' | 'spyfall' | 'whoisit' | 'truefalse' | 'songguess' | 'comingsoon';
   disabled?: boolean;
 }
 
@@ -65,12 +65,12 @@ const games: Game[] = [
   },
   {
     id: '5',
-    title: 'Vampir Köylü',
-    description: 'Vampirler geceyi, köylüler gündüzü yönetir. Kim vampir?',
-    playerCount: '5-15 Oyuncu',
-    duration: '20-40 dk',
-    color: '#7C3AED',
-    type: 'werewolf',
+    title: 'Şarkı Bul',
+    description: 'Şarkı sözlerinden şarkıyı tahmin et! AI ile sonsuz müzik kategorisi.',
+    playerCount: '2+ Oyuncu',
+    duration: '10-20 dk',
+    color: '#0891B2',
+    type: 'songguess',
   },
   {
     id: '6',
@@ -127,8 +127,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     navigation.navigate('WhoIsIt', { gameType: 'whoisit' });
   } else if (item.type === 'truefalse') {
     navigation.navigate('TrueFalse', { gameType: 'truefalse' });
-  } else if (item.type === 'werewolf') {
-    navigation.navigate('Werewolf', { gameType: 'werewolf' });
+  } else if (item.type === 'songguess') {
+    navigation.navigate('SongGuess', { gameType: 'songguess' });
   } else {
     navigation.navigate('Setup', { gameType: item.type });
   }
