@@ -166,3 +166,110 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
             raise HTTPException(status_code=500, detail="AI yanıtı parse edilemedi.")
         except httpx.HTTPError as e:
             raise HTTPException(status_code=502, detail=f"OpenAI API hatası: {str(e)}")
+        
+class AITrueFalseRequest(BaseModel):
+    topic: str
+    count: int = 15
+
+@router.post("/generate/truefalse")
+async def generate_truefalse_questions(request: AITrueFalseRequest):
+    if not OPENAI_API_KEY:
+        raise HTTPException(status_code=500, detail="OpenAI API anahtarı bulunamadı.")
+
+    prompt = f"""Sen bir Türkçe bilgi yarışması soru üreticisisin.
+'{request.topic}' konusuyla ilgili {request.count} adet doğru/yanlış sorusu üret.
+Sorular eğlenceli, ilginç ve öğretici olsun.
+SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
+
+{{
+  "questions": [
+    {{
+      "question": "Soru metni burada",
+      "answer": true,
+      "explanation": "Kısa açıklama burada"
+    }}
+  ]
+}}"""
+
+    payload = {
+        "model": "gpt-4o-mini",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.8,
+        "response_format": {"type": "json_object"}
+    }
+
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            response = await client.post(OPENAI_URL, json=payload, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+            raw_text = data["choices"][0]["message"]["content"]
+            parsed = json.loads(raw_text)
+            questions = parsed.get("questions", [])
+            return {"topic": request.topic, "questions": questions}
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=500, detail="AI yanıtı parse edilemedi.")
+        except httpx.HTTPError as e:
+            raise HTTPException(status_code=502, detail=f"OpenAI API hatası: {str(e)}")
+        
+class AIWerewolfRequest(BaseModel):
+    theme: str
+    count: int = 8
+
+@router.post("/generate/werewolf")
+async def generate_werewolf_roles(request: AIWerewolfRequest):
+    if not OPENAI_API_KEY:
+        raise HTTPException(status_code=500, detail="OpenAI API anahtarı bulunamadı.")
+
+    prompt = f"""Sen bir Türkçe parti oyunu tasarımcısısın.
+'{request.theme}' temasıyla ilgili Vampir Köylü oyunu için {request.count} adet rol üret.
+Rollerin yaklaşık 1/4'ü kötü (vampir/canavar vb.), kalanı iyi (köylü/kahraman vb.) olsun.
+Her rolün kısa bir açıklaması olsun.
+SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
+
+{{
+  "roles": [
+    {{
+      "name": "rol adı",
+      "team": "evil",
+      "description": "Bu rolün görevi"
+    }},
+    {{
+      "name": "rol adı", 
+      "team": "good",
+      "description": "Bu rolün görevi"
+    }}
+  ]
+}}"""
+
+    payload = {
+        "model": "gpt-4o-mini",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.9,
+        "response_format": {"type": "json_object"}
+    }
+
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            response = await client.post(OPENAI_URL, json=payload, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+            raw_text = data["choices"][0]["message"]["content"]
+            parsed = json.loads(raw_text)
+            roles_data = parsed.get("roles", [])
+            role_names = [r["name"] for r in roles_data]
+            return {"theme": request.theme, "roles": role_names, "roles_detail": roles_data}
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=500, detail="AI yanıtı parse edilemedi.")
+        except httpx.HTTPError as e:
+            raise HTTPException(status_code=502, detail=f"OpenAI API hatası: {str(e)}")
