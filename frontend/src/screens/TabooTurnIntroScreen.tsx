@@ -68,7 +68,6 @@ export const TabooTurnIntroScreen: React.FC<TabooTurnIntroScreenProps> = ({ navi
 
         <Text style={styles.turnText}>Sıra</Text>
         <Text style={styles.playerName}>{currentPlayer.name}</Text>
-        <Text style={styles.instruction}>nde!</Text>
 
         <View style={styles.separator} />
 

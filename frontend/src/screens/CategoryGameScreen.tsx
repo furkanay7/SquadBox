@@ -14,7 +14,6 @@ export const CategoryGameScreen: React.FC<CategoryGameScreenProps> = ({ navigati
   const [phase, setPhase] = useState<'setup' | 'playing' | 'result'>('setup');
   const [playerNames, setPlayerNames] = useState(['', '']);
   const [gameMode, setGameMode] = useState<'classic' | 'ai'>('classic');
-  const [selectedCategory, setSelectedCategory] = useState(CLASSIC_CATEGORIES[0]);
   const [aiTopic, setAiTopic] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [category, setCategory] = useState('');
@@ -26,7 +25,22 @@ export const CategoryGameScreen: React.FC<CategoryGameScreenProps> = ({ navigati
   const [timeLeft, setTimeLeft] = useState(10);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [validWords, setValidWords] = useState<string[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [loadingCategories, setLoadingCategories] = useState(false);
   const timerRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (gameMode === 'classic') {
+      const loadCategories = async () => {
+        setLoadingCategories(true);
+        const cats = await fetchAllCategories();
+        if (cats) setCategories(cats);
+        setLoadingCategories(false);
+      };
+      loadCategories();
+    }
+  }, [gameMode]);
 
   const addPlayer = () => {
     if (playerNames.length >= 10) return;
@@ -83,16 +97,17 @@ export const CategoryGameScreen: React.FC<CategoryGameScreenProps> = ({ navigati
       cat = aiResult.category;
       setValidWords(aiResult.words.map((w: string) => w.toLowerCase()));
     } else {
-      setIsGenerating(true);
-      const categories = await fetchAllCategories();
-      setIsGenerating(false);
-      if (!categories || categories.length === 0) {
-        Alert.alert('Hata', 'Kategoriler yüklenemedi.');
+      if (!selectedCategory) {
+        Alert.alert('Kategori Seç', 'Lütfen bir kategori seçin!');
         return;
       }
-      const randomCat = categories[Math.floor(Math.random() * categories.length)];
-      cat = randomCat.name;
-      setValidWords(randomCat.words.map((w: string) => w.toLowerCase()));
+      const selected = categories.find(c => c.name === selectedCategory);
+      if (!selected) {
+        Alert.alert('Hata', 'Kategori bulunamadı.');
+        return;
+      }
+      cat = selected.name;
+      setValidWords(selected.words.map((w: string) => w.toLowerCase()));
     }
 
     setCategory(cat);
@@ -155,7 +170,7 @@ export const CategoryGameScreen: React.FC<CategoryGameScreenProps> = ({ navigati
     nextPlayer();
   };
 
- const handleEliminate = (reason: 'timeout' | 'repeat' | 'invalid') => {
+  const handleEliminate = (reason: 'timeout' | 'repeat' | 'invalid') => {
     const eliminated = alivePlayers[currentPlayerIndex];
     const newAlive = alivePlayers.filter((_, i) => i !== currentPlayerIndex);
     setEliminatedPlayers(prev => [...prev, eliminated]);
@@ -220,17 +235,21 @@ export const CategoryGameScreen: React.FC<CategoryGameScreenProps> = ({ navigati
           {gameMode === 'classic' ? (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Kategori Seç</Text>
-              {CLASSIC_CATEGORIES.map((cat, idx) => (
-                <TouchableOpacity
-                  key={idx}
-                  style={[styles.categoryBtn, selectedCategory === cat && styles.categoryBtnActive]}
-                  onPress={() => setSelectedCategory(cat)}
-                >
-                  <Text style={[styles.categoryBtnText, selectedCategory === cat && styles.categoryBtnTextActive]}>
-                    {cat}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {loadingCategories ? (
+                <ActivityIndicator color="#0891B2" size="large" />
+              ) : (
+                categories.map((cat, idx) => (
+                  <TouchableOpacity
+                    key={idx}
+                    style={[styles.categoryBtn, selectedCategory === cat.name && styles.categoryBtnActive]}
+                    onPress={() => setSelectedCategory(cat.name)}
+                  >
+                    <Text style={[styles.categoryBtnText, selectedCategory === cat.name && styles.categoryBtnTextActive]}>
+                      {cat.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))
+              )}
             </View>
           ) : (
             <View style={styles.aiContainer}>
@@ -338,10 +357,7 @@ export const CategoryGameScreen: React.FC<CategoryGameScreenProps> = ({ navigati
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          style={styles.menuBtn}
-          onPress={() => navigation.navigate('Home')}
-        >
+        <TouchableOpacity style={styles.menuBtn} onPress={() => navigation.navigate('Home')}>
           <Text style={styles.menuBtnText}>Ana Menü</Text>
         </TouchableOpacity>
       </View>

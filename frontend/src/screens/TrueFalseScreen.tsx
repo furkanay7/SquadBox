@@ -16,74 +16,6 @@ interface TrueFalseScreenProps {
   navigation: any;
 }
 
-const EASY_QUESTIONS: Question[] = [
-  { question: 'Türkiye\'nin başkenti Ankara\'dır.', answer: true, explanation: 'Ankara, 1923\'ten beri Türkiye\'nin başkentidir.' },
-  { question: 'Ay, Dünya\'nın uydusudur.', answer: true, explanation: 'Ay, Dünya\'nın tek doğal uydusudur.' },
-  { question: 'Su 100 derecede kaynar.', answer: true, explanation: 'Su, deniz seviyesinde 100 derecede kaynar.' },
-  { question: 'Dünya Güneş\'in etrafında döner.', answer: true, explanation: 'Dünya, Güneş\'in etrafında 365 günde bir tur atar.' },
-  { question: 'İstanbul Türkiye\'nin en kalabalık şehridir.', answer: true, explanation: 'İstanbul, 15 milyonun üzerinde nüfusuyla Türkiye\'nin en kalabalık şehridir.' },
-  { question: 'Balina bir balıktır.', answer: false, explanation: 'Balina, balık değil memeli bir hayvandır.' },
-  { question: 'Güneş doğudan doğar.', answer: true, explanation: 'Güneş her gün doğudan doğar, batıdan batar.' },
-  { question: 'Elmas, bilinen en sert doğal maddedir.', answer: true, explanation: 'Elmas, Mohs sertlik skalasında 10 puan alır.' },
-  { question: 'İnsan vücudunda 206 kemik vardır.', answer: true, explanation: 'Yetişkin bir insan iskeletinde 206 kemik bulunur.' },
-  { question: 'Okyanuslar, Dünya yüzeyinin yaklaşık %70\'ini kaplar.', answer: true, explanation: 'Dünya yüzeyinin yaklaşık %71\'i su ile kaplıdır.' },
-  { question: 'Paris, Fransa\'nın başkentidir.', answer: true, explanation: 'Paris, Fransa\'nın hem başkenti hem de en büyük şehridir.' },
-  { question: 'İnsanlar solungaçla nefes alır.', answer: false, explanation: 'İnsanlar akciğerleriyle nefes alır. Solungaçlar balıklara özgüdür.' },
-  { question: 'Çin Seddi uzaydan görülebilir.', answer: false, explanation: 'Bu yaygın bir efsanedir; Çin Seddi uzaydan çıplak gözle görülemez.' },
-  { question: 'Domates bir meyvedir.', answer: true, explanation: 'Botanik açıdan domates, çiçekli bitkinin yumurtalığından geldiği için meyvedir.' },
-  { question: 'Şeker arıları tarafından üretilir.', answer: false, explanation: 'Şeker şeker kamışı veya pancardan elde edilir; bal arılar tarafından üretilir.' },
-  { question: 'Dünya\'nın en büyük kıtası Asya\'dır.', answer: true, explanation: 'Asya, yaklaşık 44,6 milyon km² yüzölçümüyle en büyük kıtadır.' },
-  { question: 'Olimpiyat oyunları her 4 yılda bir düzenlenir.', answer: true, explanation: 'Modern Olimpiyat Oyunları 1896\'dan beri 4 yılda bir düzenlenmektedir.' },
-  { question: 'Yarasa kör bir hayvandır.', answer: false, explanation: 'Yarasalar görebilir; hem gözlerini hem de ekolokasyonu kullanırlar.' },
-  { question: 'Şimşek hiçbir zaman aynı yere iki kez düşmez.', answer: false, explanation: 'Bu bir efsanedir; şimşek aynı yere birden fazla kez düşebilir.' },
-  { question: 'Mars kırmızı bir gezegendir.', answer: true, explanation: 'Mars, yüzeyindeki demir oksit (pas) nedeniyle kırmızı görünür.' },
-];
-
-const MEDIUM_QUESTIONS: Question[] = [
-  { question: 'Venüs, Güneş\'e en yakın gezegendir.', answer: false, explanation: 'Güneş\'e en yakın gezegen Merkür\'dür.' },
-  { question: 'Türkiye hem Avrupa hem Asya kıtasında yer alır.', answer: true, explanation: 'Türkiye, İstanbul Boğazı ile iki kıtaya yayılır.' },
-  { question: 'Işık, sesten daha hızlı hareket eder.', answer: true, explanation: 'Işık saniyede 300.000 km, ses ise yaklaşık 340 m/s hareket eder.' },
-  { question: 'Piyano 88 tuşa sahiptir.', answer: true, explanation: 'Standart bir piyano 88 tuşa sahiptir.' },
-  { question: 'Fil, kara hayvanları arasında en büyük olandır.', answer: true, explanation: 'Afrika fili, karada yaşayan en büyük hayvandır.' },
-  { question: 'Atlantik Okyanusu, dünyanın en büyük okyanusudur.', answer: false, explanation: 'En büyük okyanus Pasifik\'tir.' },
-  { question: 'Çin, dünyanın en kalabalık ülkesidir.', answer: false, explanation: '2023 itibarıyla Hindistan, Çin\'i geçerek en kalabalık ülke oldu.' },
-  { question: 'Japon bayrağında yıldız vardır.', answer: false, explanation: 'Japon bayrağında beyaz zemin üzerinde kırmızı daire vardır.' },
-  { question: 'DNA çift sarmal yapısındadır.', answer: true, explanation: 'DNA, Watson ve Crick tarafından keşfedilen çift sarmal yapıya sahiptir.' },
-  { question: 'Osmanlı İmparatorluğu 600 yıldan fazla sürdü.', answer: true, explanation: 'Osmanlı İmparatorluğu 1299-1922 yılları arasında yaklaşık 623 yıl sürdü.' },
-  { question: 'Avustralya hem bir ülke hem bir kıtadır.', answer: true, explanation: 'Avustralya, aynı zamanda Okyanusya kıtasının ana kara parçasıdır.' },
-  { question: 'Okyanus suyu tatlı sudur.', answer: false, explanation: 'Okyanus suyu tuzludur; ortalama tuzluluk oranı binde 35\'tir.' },
-  { question: 'İnsan beyni %80 sudan oluşur.', answer: false, explanation: 'İnsan beyni yaklaşık %73 sudan oluşur.' },
-  { question: 'Güneş bir yıldızdır.', answer: true, explanation: 'Güneş, Dünya\'ya en yakın yıldızdır.' },
-  { question: 'Kafein bir uyarıcıdır.', answer: true, explanation: 'Kafein, merkezi sinir sistemini uyaran bir maddedir.' },
-  { question: 'Kaktüs yapraklarında su depolar.', answer: false, explanation: 'Kaktüsler suyu gövdelerinde depolar, yapraklarda değil.' },
-  { question: 'Dünya\'nın en uzun nehri Nil\'dir.', answer: true, explanation: 'Nil nehri yaklaşık 6.650 km ile dünyanın en uzun nehridir.' },
-  { question: 'Çelik demirden daha sağlamdır.', answer: true, explanation: 'Çelik, demir ve karbon alaşımı olup demirden çok daha dayanıklıdır.' },
-  { question: 'Oksijenin sembolü O2\'dir.', answer: false, explanation: 'Oksijenin elementi O\'dur; O2 ise iki oksijen atomundan oluşan oksijen molekülüdür.' },
-  { question: 'Balıklar soğukkanlı hayvanlardır.', answer: true, explanation: 'Balıklar ektoterm (soğukkanlı) hayvanlardır; vücut sıcaklıkları çevre sıcaklığına bağlıdır.' },
-];
-
-const HARD_QUESTIONS: Question[] = [
-  { question: 'Işığın vakumdaki hızı saniyede 299.792 km\'dir.', answer: true, explanation: 'Işığın vakumdaki hızı tam olarak 299.792.458 m/s\'dir.' },
-  { question: 'Dünyanın en derin gölü Hazar Gölü\'dür.', answer: false, explanation: 'Dünyanın en derin gölü Rusya\'daki Baykal Gölü\'dür.' },
-  { question: 'Periyodik tabloda 118 element bulunur.', answer: true, explanation: '2016 yılında onaylanan 4 yeni elementle toplam 118 element tamamlandı.' },
-  { question: 'Türkiye\'de 81 il bulunmaktadır.', answer: true, explanation: 'Türkiye 81 ilden oluşmaktadır.' },
-  { question: 'Kuantum mekaniğinde Schrödinger\'in kedisi bir düşünce deneyidir.', answer: true, explanation: 'Erwin Schrödinger, 1935\'te bu ünlü düşünce deneyini ortaya attı.' },
-  { question: 'İnsan genomu yaklaşık 3 milyar baz çiftinden oluşur.', answer: true, explanation: 'İnsan genomu yaklaşık 3,2 milyar baz çifti içerir.' },
-  { question: 'Güneş sistemi Samanyolu\'nun merkezinde yer alır.', answer: false, explanation: 'Güneş sistemi, Samanyolu\'nun merkezinden yaklaşık 26.000 ışık yılı uzaktadır.' },
-  { question: 'Fibonacci dizisinde her sayı kendinden önceki iki sayının toplamıdır.', answer: true, explanation: 'Fibonacci dizisi: 0, 1, 1, 2, 3, 5, 8, 13... şeklinde devam eder.' },
-  { question: 'Dünyanın manyetik kuzey kutbu ile coğrafi kuzey kutbu aynı noktadadır.', answer: false, explanation: 'Manyetik ve coğrafi kuzey kutupları farklı konumlardadır ve manyetik kutup zamanla kayar.' },
-  { question: 'ATP, hücrelerin temel enerji molekülüdür.', answer: true, explanation: 'Adenozin trifosfat (ATP), hücresel enerji transferinin temel molekülüdür.' },
-  { question: 'Plüton bir gezegen olarak kabul edilmektedir.', answer: false, explanation: 'Plüton 2006\'da cüce gezegen olarak yeniden sınıflandırıldı.' },
-  { question: 'Karbon atomu 6 proton içerir.', answer: true, explanation: 'Karbon\'un atom numarası 6\'dır, yani çekirdeğinde 6 proton bulunur.' },
-  { question: 'CERN, Fransa-İsviçre sınırında yer almaktadır.', answer: true, explanation: 'CERN\'in büyük hadron çarpıştırıcısı Fransa-İsviçre sınırında bulunur.' },
-  { question: 'Evren yaklaşık 14 milyar yaşındadır.', answer: true, explanation: 'Büyük Patlama\'ya göre evrenin yaşı yaklaşık 13,8 milyar yıldır.' },
-  { question: 'Nötronlar pozitif yük taşır.', answer: false, explanation: 'Nötronlar elektriksel açıdan nötrdür; yük taşımazlar.' },
-  { question: 'Mutlak sıfır -273,15 santigrat derecedir.', answer: true, explanation: 'Mutlak sıfır, -273,15°C veya 0 Kelvin\'dir.' },
-  { question: 'RNA tek ipliklidir.', answer: true, explanation: 'DNA\'nın aksine RNA genellikle tek iplikli bir moleküldür.' },
-  { question: 'Kara delikler ışığı emer.', answer: true, explanation: 'Kara deliklerin kütle çekimi o kadar güçlüdür ki kaçış hızı ışık hızını aşar.' },
-  { question: 'Sinir impulsu elektrik sinyalidir.', answer: true, explanation: 'Sinir hücreleri elektrokimyasal sinyaller iletir.' },
-  { question: 'Helyum oda sıcaklığında sıvı haldedir.', answer: false, explanation: 'Helyum oda sıcaklığında gaz haldedir; sıvılaşması için -269°C gerekir.' },
-];
 
 export const TrueFalseScreen: React.FC<TrueFalseScreenProps> = ({ navigation }) => {
   const [phase, setPhase] = useState<'setup' | 'playing' | 'result'>('setup');
@@ -364,7 +296,7 @@ export const TrueFalseScreen: React.FC<TrueFalseScreenProps> = ({ navigation }) 
 
         <View style={s.footer}>
           <TouchableOpacity style={s.secondaryBtn} onPress={() => setPhase('setup')}>
-            <Text style={s.secondaryBtnText}>↩ Yeniden Kur</Text>
+            <Text style={s.secondaryBtnText}>Yeniden Kur</Text>
           </TouchableOpacity>
           <TouchableOpacity style={s.secondaryBtn} onPress={() => navigation.navigate('Home')}>
             <Text style={s.secondaryBtnText}>Ana Menü</Text>

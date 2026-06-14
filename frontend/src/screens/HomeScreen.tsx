@@ -57,7 +57,7 @@ const games: Game[] = [
   {
     id: '4',
     title: 'Doğru mu Yanlış mı?',
-    description: 'AI\'ın ürettiği sorulara doğru veya yanlış de! Kendi konunu seç.',
+    description: 'Sorulara doğru veya yanlış de! AI\'a kendi konunu ürettir.',
     playerCount: '2+ Oyuncu',
     duration: '10-15 dk',
     color: '#D97706',
@@ -75,7 +75,7 @@ const games: Game[] = [
   {
     id: '6',
     title: 'Yakında...',
-    description: 'Yeni oyunlar çok yakında! Bizi takip etmeye devam edin.',
+    description: 'Yeni oyunlar yakında! Bizi takip etmeye devam edin.',
     playerCount: '? Oyuncu',
     duration: '? dk',
     color: theme.colors.background.tertiary,
@@ -159,7 +159,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             )}
             {item.disabled && (
               <View style={[styles.playButton, styles.playButtonDisabled]}>
-                <Text style={styles.playButtonText}>Çok Yakında</Text>
+                <Text style={styles.playButtonText}>Yakında</Text>
               </View>
             )}
           </View>

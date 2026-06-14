@@ -24,7 +24,7 @@ const DEFAULT_CARDS = [
   'Elon Musk', 'Marilyn Monroe', 'Michael Jackson', 'Shakespeare', 'Socrates',
 ];
 
-type GamePhase = 'setup' | 'cardAssign' | 'guessing' | 'roundResult' | 'result';
+type GamePhase = 'setup' | 'cardAssign' | 'guessing' | 'roundResult' | 'gameEnd';
 
 export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
   const [phase, setPhase] = useState<GamePhase>('setup');
@@ -40,6 +40,8 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
   const [roundScores, setRoundScores] = useState<boolean[]>([]);
   const [currentGuessIndex, setCurrentGuessIndex] = useState(0);
   const [aiCards, setAiCards] = useState<string[]>([]);
+  const [totalRounds, setTotalRounds] = useState(3);
+  const [currentRound, setCurrentRound] = useState(1);
 
   const addPlayer = () => {
     if (playerNames.length >= 10) return;
@@ -111,6 +113,7 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
       setPlayers(newPlayers);
     }
 
+    setCurrentRound(1);
     setCurrentPlayerIndex(0);
     setShowCard(false);
     setCardShownToOthers(false);
@@ -144,11 +147,11 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
     if (currentPlayerIndex < players.length - 1) {
       setCurrentPlayerIndex(prev => prev + 1);
     } else {
-  const nextIdx = currentPlayerIndex === players.length - 1 ? 0 : currentPlayerIndex + 1;
-  setCurrentGuessIndex(nextIdx);
-  setRoundScores(new Array(players.length).fill(false));
-  setPhase('guessing');
-}
+      const nextIdx = currentPlayerIndex === players.length - 1 ? 0 : currentPlayerIndex + 1;
+      setCurrentGuessIndex(nextIdx);
+      setRoundScores(new Array(players.length).fill(false));
+      setPhase('guessing');
+    }
   };
 
   const handleGuessResult = (guessed: boolean) => {
@@ -156,14 +159,10 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
     newScores[currentGuessIndex] = guessed;
     setRoundScores(newScores);
 
-    // Sıradaki oyuncuyu bul (mevcut index + 1, döngüsel)
     const nextIdx = (currentGuessIndex + 1) % players.length;
-    
-    // Başlangıç noktasına döndük mü?
     const startIdx = currentPlayerIndex === players.length - 1 ? 0 : currentPlayerIndex + 1;
-    
+
     if (nextIdx === startIdx) {
-      // Herkes soruldu, puanları güncelle
       const updatedPlayers = [...players];
       newScores.forEach((correct, idx) => {
         if (correct) updatedPlayers[idx].score += 1;
@@ -176,6 +175,13 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
   };
 
   const startNewRound = () => {
+    if (currentRound >= totalRounds) {
+      setPhase('gameEnd');
+      return;
+    }
+
+    setCurrentRound(prev => prev + 1);
+
     if (gameMode === 'classic') {
       const resetPlayers = players.map(p => ({ ...p, card: '', hasGuessed: false }));
       setPlayers(resetPlayers);
@@ -237,6 +243,19 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
             </View>
           )}
 
+          <Text style={styles.sectionTitle}>Tur Sayısı</Text>
+          <View style={styles.modeContainer}>
+            {[1, 2, 3, 5].map((r) => (
+              <TouchableOpacity
+                key={r}
+                style={[styles.roundBtn, totalRounds === r && styles.roundBtnActive]}
+                onPress={() => setTotalRounds(r)}
+              >
+                <Text style={[styles.roundBtnText, totalRounds === r && styles.roundBtnTextActive]}>{r}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
           <Text style={styles.sectionTitle}>Oyuncular</Text>
           <Text style={styles.hint}>En az 2 oyuncu gerekli</Text>
           {playerNames.map((name, index) => (
@@ -287,7 +306,7 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Ben Kimim?</Text>
-          <Text style={styles.subtitle}>Oyuncu {currentPlayerIndex + 1}/{players.length}</Text>
+          <Text style={styles.subtitle}>Tur {currentRound}/{totalRounds} • Oyuncu {currentPlayerIndex + 1}/{players.length}</Text>
         </View>
 
         {!cardShownToOthers ? (
@@ -310,15 +329,18 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
                   autoFocus
                 />
                 <TouchableOpacity
-  style={[{ backgroundColor: '#6366F1', padding: 14, borderRadius: 10, alignItems: 'center', marginTop: 15 }, !currentCardInput.trim() && styles.disabled]}
-  onPress={handleCardAssigned}
-  disabled={!currentCardInput.trim()}
->
-  <Text style={styles.startBtnText}>Kart Hazır →</Text>
-</TouchableOpacity>
+                  style={[{ backgroundColor: '#6366F1', padding: 14, borderRadius: 10, alignItems: 'center', marginTop: 15 }, !currentCardInput.trim() && styles.disabled]}
+                  onPress={handleCardAssigned}
+                  disabled={!currentCardInput.trim()}
+                >
+                  <Text style={styles.startBtnText}>Kart Hazır →</Text>
+                </TouchableOpacity>
               </>
             ) : (
-              <TouchableOpacity style={styles.startBtn} onPress={handleCardAssigned}>
+              <TouchableOpacity 
+                style={{ backgroundColor: '#6366F1', padding: 14, borderRadius: 10, alignItems: 'center', marginTop: 15 }} 
+                onPress={handleCardAssigned}
+              >
                 <Text style={styles.startBtnText}>Kartı Göster →</Text>
               </TouchableOpacity>
             )}
@@ -334,12 +356,12 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
               <Text style={styles.cardLabel}>Kart:</Text>
               <Text style={styles.cardValue}>{current.card}</Text>
             </View>
-            <TouchableOpacity 
-  style={{ backgroundColor: '#6366F1', padding: 14, borderRadius: 10, alignItems: 'center', marginTop: 20, width: '100%' }} 
-  onPress={handlePlayerReady}
->
-  <Text style={styles.startBtnText}>Devam Et →</Text>
-</TouchableOpacity>
+            <TouchableOpacity
+              style={{ backgroundColor: '#6366F1', padding: 14, borderRadius: 10, alignItems: 'center', marginTop: 20, width: '100%' }}
+              onPress={handlePlayerReady}
+            >
+              <Text style={styles.startBtnText}>Devam Et →</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -352,7 +374,8 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
 
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }]}>
-        <Text style={styles.title}>🎯 {current.name}</Text>
+        <Text style={styles.subtitle}>Tur {currentRound}/{totalRounds}</Text>
+        <Text style={[styles.title, { marginTop: 8 }]}>🎯 {current.name}</Text>
         <Text style={[styles.subtitle, { marginBottom: 30, textAlign: 'center' }]}>
           Kartını tahmin edebildi mi?
         </Text>
@@ -386,10 +409,16 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
 
   // TUR SONUCU
   if (phase === 'roundResult') {
+    const isLastRound = currentRound >= totalRounds;
+
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }]}>
-        <Text style={styles.title}>🏆 Puan Tablosu</Text>
-        <Text style={[styles.subtitle, { marginBottom: 30 }]}>Tur tamamlandı!</Text>
+        <Text style={styles.title}>
+          {isLastRound ? '🏆 Oyun Bitti!' : `📊 Tur ${currentRound} Bitti!`}
+        </Text>
+        <Text style={[styles.subtitle, { marginBottom: 30 }]}>
+          {isLastRound ? 'Genel puan tablosu' : `${currentRound}/${totalRounds} tur tamamlandı`}
+        </Text>
 
         <View style={{ width: '100%' }}>
           {[...players]
@@ -408,8 +437,8 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
           <TouchableOpacity style={[styles.backBtn, { flex: 1 }]} onPress={() => navigation.navigate('Home')}>
             <Text style={styles.backBtnText}>Ana Menü</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.startBtn, { flex: 2 }]} onPress={startNewRound}>
-            <Text style={styles.startBtnText}>Yeni Tur →</Text>
+          <TouchableOpacity style={[styles.startBtn, { flex: 2 }]} onPress={isLastRound ? () => setPhase('setup') : startNewRound}>
+            <Text style={styles.startBtnText}>{isLastRound ? 'Yeniden Oyna' : `Tur ${currentRound + 1} →`}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -435,6 +464,10 @@ const styles = StyleSheet.create({
   modeTitle: { fontSize: 16, fontWeight: 'bold', color: '#94A3B8', marginBottom: 4 },
   modeTitleActive: { color: '#FFFFFF' },
   modeDesc: { fontSize: 12, color: '#64748B', textAlign: 'center' },
+  roundBtn: { flex: 1, backgroundColor: '#1E293B', borderRadius: 10, padding: 14, alignItems: 'center', borderWidth: 2, borderColor: '#334155' },
+  roundBtnActive: { borderColor: '#6366F1', backgroundColor: '#1E1B4B' },
+  roundBtnText: { fontSize: 18, fontWeight: 'bold', color: '#94A3B8' },
+  roundBtnTextActive: { color: '#FFFFFF' },
   aiContainer: { backgroundColor: '#022C22', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#10B981', marginBottom: 20 },
   aiLabel: { fontSize: 14, color: '#10B981', fontWeight: '600', marginBottom: 8 },
   aiInput: { backgroundColor: '#1E293B', borderRadius: 10, padding: 12, color: '#F8FAFC', fontSize: 16, borderWidth: 1, borderColor: '#334155', marginBottom: 8 },

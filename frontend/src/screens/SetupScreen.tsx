@@ -257,9 +257,6 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
                   onChangeText={setAiTopic}
                   maxLength={50}
                 />
-                <Text style={styles.aiHint}>
-                  🤖 AI bu konuya özel 15 Tabu kartı üretecek
-                </Text>
               </View>
             )}
           </View>
@@ -292,7 +289,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
         </View>
       ))}
       <TouchableOpacity style={styles.addButton} onPress={addPlayer}>
-        <Text style={styles.addButtonText}>+ Takım A'ya Oyuncu Ekle</Text>
+        <Text style={styles.addButtonText}>+ Oyuncu Ekle</Text>
       </TouchableOpacity>
 
       {/* Takım B */}
@@ -319,7 +316,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
         );
       })}
       <TouchableOpacity style={[styles.addButton, { borderColor: '#6366F1' }]} onPress={addPlayer}>
-        <Text style={[styles.addButtonText, { color: '#6366F1' }]}>+ Takım B'ye Oyuncu Ekle</Text>
+        <Text style={[styles.addButtonText, { color: '#6366F1' }]}>+ Oyuncu Ekle</Text>
       </TouchableOpacity>
     </>
   ) : (

@@ -238,7 +238,7 @@ export const TabooGameScreen: React.FC<TabooGameScreenProps> = ({ navigation, ro
         </View>
 
         <View style={st.introCard}>
-          <View style={[st.teamLabel, { backgroundColor: isTeamATurn ? '#6366F1' : '#EC4899' }]}>
+          <View style={[st.teamLabel, { backgroundColor: isTeamATurn ? '#6366F1' : '#6366F1' }]}>
             <Text style={st.teamLabelText}>{currentTeamName}</Text>
           </View>
           <Text style={st.introSira}>Sıra</Text>
@@ -254,7 +254,7 @@ export const TabooGameScreen: React.FC<TabooGameScreenProps> = ({ navigation, ro
           <TouchableOpacity style={st.secondaryBtn} onPress={() => navigation.navigate('Home')}>
             <Text style={st.secondaryBtnText}>Ana Menü</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[st.primaryBtn, { backgroundColor: isTeamATurn ? '#6366F1' : '#EC4899' }]} onPress={startTurn}>
+          <TouchableOpacity style={[st.primaryBtn, { backgroundColor: isTeamATurn ? '#6366F1' : '#6366F1' }]} onPress={startTurn}>
             <Text style={st.primaryBtnText}>BAŞLAT</Text>
           </TouchableOpacity>
         </View>
@@ -302,7 +302,7 @@ const isLastTurn = turnsThisRound + 1 >= totalTurnsPerRound && round >= rounds;
             <>
               <View style={{ height: 30 }} />
               <Text style={st.introSira}>Sıradaki:</Text>
-              <View style={[st.teamLabel, { backgroundColor: nextIsTeamA ? '#6366F1' : '#EC4899' }]}>
+              <View style={[st.teamLabel, { backgroundColor: nextIsTeamA ? '#6366F1' : '#6366F1' }]}>
                 <Text style={st.teamLabelText}>{nextTeamName}</Text>
               </View>
               <Text style={st.introPlayer}>{nextPlayer?.name}</Text>
@@ -471,7 +471,7 @@ const isLastTurn = turnsThisRound + 1 >= totalTurnsPerRound && round >= rounds;
           style={[st.primaryBtn, { backgroundColor: '#334155' }]}
           onPress={() => setIsPlaying(p => !p)}
         >
-          <Text style={st.primaryBtnText}>{isPlaying ? '⏸ DURDUR' : '▶ DEVAM'}</Text>
+          <Text style={st.primaryBtnText}>{isPlaying ? 'Durdur' : 'Devam'}</Text>
         </TouchableOpacity>
       </View>
     </View>
