@@ -9,6 +9,17 @@ interface CategoryGameScreenProps {
   navigation: any;
 }
 
+const CLASSIC_CATEGORIES = [
+  'Türkiye Şehirleri',
+  'Hayvanlar',
+  'Meyveler',
+  'Futbol Takımları',
+  'Ülkeler',
+  'Renk İsimleri',
+  'Türk Yemekleri',
+  'Meslekler',
+];
+
 const CLASSIC_WORD_LISTS: { [key: string]: string[] } = {
   'Türkiye Şehirleri': ['istanbul', 'ankara', 'izmir', 'bursa', 'antalya', 'adana', 'konya', 'gaziantep', 'şanlıurfa', 'mersin', 'kayseri', 'eskişehir', 'trabzon', 'samsun', 'malatya', 'gebze', 'erzurum', 'denizli', 'van', 'batman', 'elazığ', 'diyarbakır', 'sakarya', 'manisa', 'balıkesir', 'kocaeli', 'muğla', 'tekirdağ', 'hatay', 'kahramanmaraş'],
   'Hayvanlar': ['aslan', 'kaplan', 'fil', 'zürafa', 'penguen', 'köpek', 'kedi', 'at', 'inek', 'kuş', 'balık', 'yılan', 'timsah', 'ahtapot', 'köpekbalığı', 'kartal', 'baykuş', 'tavşan', 'ayı', 'kurt', 'tilki', 'maymun', 'goril', 'zebra', 'gergedan', 'hipopotam', 'deve', 'kanguru', 'koala', 'panda'],

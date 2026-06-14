@@ -170,15 +170,22 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
 class AITrueFalseRequest(BaseModel):
     topic: str
     count: int = 15
+    difficulty: str = "medium"
 
 @router.post("/generate/truefalse")
 async def generate_truefalse_questions(request: AITrueFalseRequest):
     if not OPENAI_API_KEY:
         raise HTTPException(status_code=500, detail="OpenAI API anahtarı bulunamadı.")
 
+    difficulty_map = {
+        "easy": "çok basit, herkesin bildiği",
+        "medium": "orta zorlukta, biraz düşündüren",
+        "hard": "zor, az kişinin bildiği"
+    }
+    difficulty_text = difficulty_map.get(request.difficulty, "orta zorlukta")
+
     prompt = f"""Sen bir Türkçe bilgi yarışması soru üreticisisin.
-'{request.topic}' konusuyla ilgili {request.count} adet doğru/yanlış sorusu üret.
-Sorular eğlenceli, ilginç ve öğretici olsun.
+'{request.topic}' konusuyla ilgili {difficulty_text} {request.count} adet doğru/yanlış sorusu üret.
 SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
 
 {{

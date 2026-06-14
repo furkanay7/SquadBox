@@ -49,7 +49,7 @@ const games: Game[] = [
     id: '3',
     title: 'Ben Kimim?',
     description: 'Alnındaki kartı görmeden sorularla kim olduğunu bul! AI ile sonsuz karakter.',
-    playerCount: '3+ Oyuncu',
+    playerCount: '2+ Oyuncu',
     duration: '10-20 dk',
     color: '#E11D48',
     type: 'whoisit',

@@ -10,6 +10,7 @@ interface Player {
   name: string;
   card: string;
   hasGuessed: boolean;
+  score: number;
 }
 
 interface WhoIsItScreenProps {
@@ -23,16 +24,22 @@ const DEFAULT_CARDS = [
   'Elon Musk', 'Marilyn Monroe', 'Michael Jackson', 'Shakespeare', 'Socrates',
 ];
 
+type GamePhase = 'setup' | 'cardAssign' | 'guessing' | 'roundResult' | 'result';
+
 export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
-  const [phase, setPhase] = useState<'setup' | 'playing' | 'result'>('setup');
-  const [playerNames, setPlayerNames] = useState(['', '', '']);
+  const [phase, setPhase] = useState<GamePhase>('setup');
+  const [playerNames, setPlayerNames] = useState(['', '']);
   const [gameMode, setGameMode] = useState<'classic' | 'ai'>('classic');
   const [aiTopic, setAiTopic] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [showCard, setShowCard] = useState(false);
-  const [waitingForPass, setWaitingForPass] = useState(false);
+  const [cardShownToOthers, setCardShownToOthers] = useState(false);
+  const [currentCardInput, setCurrentCardInput] = useState('');
+  const [roundScores, setRoundScores] = useState<boolean[]>([]);
+  const [currentGuessIndex, setCurrentGuessIndex] = useState(0);
+  const [aiCards, setAiCards] = useState<string[]>([]);
 
   const addPlayer = () => {
     if (playerNames.length >= 10) return;
@@ -40,7 +47,7 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
   };
 
   const removePlayer = (index: number) => {
-    if (playerNames.length <= 3) return;
+    if (playerNames.length <= 2) return;
     setPlayerNames(playerNames.filter((_, i) => i !== index));
   };
 
@@ -67,12 +74,10 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
 
   const startGame = async () => {
     const validNames = playerNames.filter(n => n.trim() !== '');
-    if (validNames.length < 3) {
-      Alert.alert('Eksik Oyuncu', 'En az 3 oyuncu gerekli!');
+    if (validNames.length < 2) {
+      Alert.alert('Eksik Oyuncu', 'En az 2 oyuncu gerekli!');
       return;
     }
-
-    let cards: string[] = [];
 
     if (gameMode === 'ai') {
       if (!aiTopic.trim()) {
@@ -80,57 +85,115 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
         return;
       }
       setIsGenerating(true);
-      const aiCards = await generateAICards(aiTopic.trim(), validNames.length);
+      const cards = await generateAICards(aiTopic.trim(), validNames.length);
       setIsGenerating(false);
-      if (!aiCards) {
+      if (!cards) {
         Alert.alert('Hata', 'AI kartları üretilemedi.');
         return;
       }
-      cards = aiCards;
+      setAiCards(cards);
+      const newPlayers: Player[] = validNames.map((name, idx) => ({
+        id: idx.toString(),
+        name,
+        card: cards[idx] || DEFAULT_CARDS[idx % DEFAULT_CARDS.length],
+        hasGuessed: false,
+        score: 0,
+      }));
+      setPlayers(newPlayers);
     } else {
-      const shuffled = [...DEFAULT_CARDS].sort(() => Math.random() - 0.5);
-      cards = shuffled.slice(0, validNames.length);
+      const newPlayers: Player[] = validNames.map((name, idx) => ({
+        id: idx.toString(),
+        name,
+        card: '',
+        hasGuessed: false,
+        score: 0,
+      }));
+      setPlayers(newPlayers);
     }
 
-    const newPlayers: Player[] = validNames.map((name, idx) => ({
-      id: idx.toString(),
-      name,
-      card: cards[idx] || DEFAULT_CARDS[idx % DEFAULT_CARDS.length],
-      hasGuessed: false,
-    }));
-
-    setPlayers(newPlayers);
     setCurrentPlayerIndex(0);
     setShowCard(false);
-    setWaitingForPass(false);
-    setPhase('playing');
+    setCardShownToOthers(false);
+    setCurrentCardInput('');
+    setRoundScores([]);
+    setCurrentGuessIndex(0);
+    setPhase('cardAssign');
   };
 
-  const handleShowCard = () => setShowCard(true);
+  const handleCardAssigned = () => {
+    if (gameMode === 'classic' && !currentCardInput.trim()) {
+      Alert.alert('Karakter Yaz', 'Lütfen bir karakter adı yazın!');
+      return;
+    }
 
-  const handleReady = () => {
+    if (gameMode === 'classic') {
+      const updated = [...players];
+      updated[currentPlayerIndex].card = currentCardInput.trim();
+      setPlayers(updated);
+    }
+
+    setCardShownToOthers(true);
+    setShowCard(true);
+  };
+
+  const handlePlayerReady = () => {
     setShowCard(false);
-    setWaitingForPass(false);
+    setCardShownToOthers(false);
+    setCurrentCardInput('');
+
     if (currentPlayerIndex < players.length - 1) {
       setCurrentPlayerIndex(prev => prev + 1);
     } else {
-      Alert.alert('Herkes Hazır!', 'Oyun başlıyor! Sorular sormaya başlayın.', [
-        { text: 'Tamam' }
-      ]);
+  const nextIdx = currentPlayerIndex === players.length - 1 ? 0 : currentPlayerIndex + 1;
+  setCurrentGuessIndex(nextIdx);
+  setRoundScores(new Array(players.length).fill(false));
+  setPhase('guessing');
+}
+  };
+
+  const handleGuessResult = (guessed: boolean) => {
+    const newScores = [...roundScores];
+    newScores[currentGuessIndex] = guessed;
+    setRoundScores(newScores);
+
+    // Sıradaki oyuncuyu bul (mevcut index + 1, döngüsel)
+    const nextIdx = (currentGuessIndex + 1) % players.length;
+    
+    // Başlangıç noktasına döndük mü?
+    const startIdx = currentPlayerIndex === players.length - 1 ? 0 : currentPlayerIndex + 1;
+    
+    if (nextIdx === startIdx) {
+      // Herkes soruldu, puanları güncelle
+      const updatedPlayers = [...players];
+      newScores.forEach((correct, idx) => {
+        if (correct) updatedPlayers[idx].score += 1;
+      });
+      setPlayers(updatedPlayers);
+      setPhase('roundResult');
+    } else {
+      setCurrentGuessIndex(nextIdx);
     }
   };
 
-  const handleGuessed = (playerIndex: number) => {
-    const updated = [...players];
-    updated[playerIndex].hasGuessed = true;
-    setPlayers(updated);
-
-    const allGuessed = updated.every(p => p.hasGuessed);
-    if (allGuessed) {
-      setPhase('result');
+  const startNewRound = () => {
+    if (gameMode === 'classic') {
+      const resetPlayers = players.map(p => ({ ...p, card: '', hasGuessed: false }));
+      setPlayers(resetPlayers);
+    } else {
+      const newCards = [...DEFAULT_CARDS].sort(() => Math.random() - 0.5).slice(0, players.length);
+      const resetPlayers = players.map((p, idx) => ({ ...p, card: newCards[idx], hasGuessed: false }));
+      setPlayers(resetPlayers);
     }
+    setCurrentPlayerIndex(0);
+    setShowCard(false);
+    setCardShownToOthers(false);
+    setCurrentCardInput('');
+    setRoundScores([]);
+    setCurrentGuessIndex(0);
+    setPhase('cardAssign');
   };
 
+  // SETUP
   if (phase === 'setup') {
     return (
       <View style={styles.container}>
@@ -148,7 +211,7 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
             >
               <Text style={styles.modeIcon}>🎭</Text>
               <Text style={[styles.modeTitle, gameMode === 'classic' && styles.modeTitleActive]}>Klasik</Text>
-              <Text style={styles.modeDesc}>Hazır ünlüler</Text>
+              <Text style={styles.modeDesc}>Arkadaşlar karakter yazar</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.modeButton, gameMode === 'ai' && styles.modeActiveAI]}
@@ -156,7 +219,7 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
             >
               <Text style={styles.modeIcon}>🤖</Text>
               <Text style={[styles.modeTitle, gameMode === 'ai' && styles.modeTitleActive]}>AI Modu</Text>
-              <Text style={styles.modeDesc}>Kendi konunu seç</Text>
+              <Text style={styles.modeDesc}>AI karakter üretir</Text>
             </TouchableOpacity>
           </View>
 
@@ -175,7 +238,7 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
           )}
 
           <Text style={styles.sectionTitle}>Oyuncular</Text>
-          <Text style={styles.hint}>En az 3 oyuncu gerekli</Text>
+          <Text style={styles.hint}>En az 2 oyuncu gerekli</Text>
           {playerNames.map((name, index) => (
             <View key={index} style={styles.playerRow}>
               <Text style={styles.playerNum}>{index + 1}.</Text>
@@ -202,7 +265,7 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
             <Text style={styles.backBtnText}>Geri</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.startBtn, isGenerating && styles.startBtnDisabled]}
+            style={[styles.startBtn, isGenerating && styles.disabled]}
             onPress={startGame}
             disabled={isGenerating}
           >
@@ -216,101 +279,137 @@ export const WhoIsItScreen: React.FC<WhoIsItScreenProps> = ({ navigation }) => {
     );
   }
 
-  if (phase === 'playing') {
+  // KART ATAMA
+  if (phase === 'cardAssign') {
     const current = players[currentPlayerIndex];
-    const allReady = currentPlayerIndex >= players.length;
-
-    if (allReady) {
-      return (
-        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-          <Text style={styles.title}>🎮 Oyun Başladı!</Text>
-          <Text style={[styles.subtitle, { textAlign: 'center', marginHorizontal: 20, marginTop: 10 }]}>
-            Herkes kartını gördü. Birbirinize sorular sorarak kendi kartınızı tahmin etmeye çalışın!
-          </Text>
-          <Text style={[styles.hint, { marginTop: 20, textAlign: 'center' }]}>
-            Sorulara sadece Evet/Hayır cevabı verilebilir.
-          </Text>
-
-          <View style={{ marginTop: 40, width: '100%', paddingHorizontal: 20 }}>
-            <Text style={styles.sectionTitle}>Kim Tahmin Etti?</Text>
-            {players.map((player, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={[styles.guessCard, player.hasGuessed && styles.guessCardDone]}
-                onPress={() => !player.hasGuessed && handleGuessed(idx)}
-                disabled={player.hasGuessed}
-              >
-                <Text style={styles.guessCardText}>
-                  {player.hasGuessed ? '✅' : '⬜'} {player.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <TouchableOpacity style={[styles.backBtn, { marginTop: 30 }]} onPress={() => navigation.goBack()}>
-            <Text style={styles.backBtnText}>Ana Menü</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
 
     return (
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Ben Kimim?</Text>
-          <Text style={styles.subtitle}>
-            Oyuncu {currentPlayerIndex + 1}/{players.length}
-          </Text>
+          <Text style={styles.subtitle}>Oyuncu {currentPlayerIndex + 1}/{players.length}</Text>
         </View>
 
-        <View style={styles.passCard}>
-          <Text style={styles.passName}>{current.name}</Text>
-          <Text style={styles.passInstruction}>
-            Telefonu {current.name}'e ver.{'\n'}Hazır olduğunda butona bas.
-          </Text>
-        </View>
+        {!cardShownToOthers ? (
+          <View style={{ flex: 1, paddingHorizontal: 20 }}>
+            <View style={styles.passCard}>
+              <Text style={styles.passName}>🙈 {current.name} bakmasın!</Text>
+              <Text style={styles.passInstruction}>
+                Diğer oyuncular {current.name} için{'\n'}bir karakter yazın.
+              </Text>
+            </View>
 
-        {!showCard ? (
-          <TouchableOpacity style={styles.revealBtn} onPress={handleShowCard}>
-            <Text style={styles.revealBtnText}>KARTI GÖSTER</Text>
-            <Text style={styles.revealBtnSub}>Başkası görmesin!</Text>
-          </TouchableOpacity>
+            {gameMode === 'classic' ? (
+              <>
+                <TextInput
+                  style={styles.bigInput}
+                  placeholder={`${current.name} için karakter yaz...`}
+                  placeholderTextColor="#64748B"
+                  value={currentCardInput}
+                  onChangeText={setCurrentCardInput}
+                  autoFocus
+                />
+                <TouchableOpacity
+  style={[{ backgroundColor: '#6366F1', padding: 14, borderRadius: 10, alignItems: 'center', marginTop: 15 }, !currentCardInput.trim() && styles.disabled]}
+  onPress={handleCardAssigned}
+  disabled={!currentCardInput.trim()}
+>
+  <Text style={styles.startBtnText}>Kart Hazır →</Text>
+</TouchableOpacity>
+              </>
+            ) : (
+              <TouchableOpacity style={styles.startBtn} onPress={handleCardAssigned}>
+                <Text style={styles.startBtnText}>Kartı Göster →</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         ) : (
-          <View style={styles.cardContainer}>
-            <Text style={styles.cardLabel}>Senin Kartin:</Text>
-            <Text style={styles.cardValue}>{current.card}</Text>
-            <Text style={styles.cardHint}>Bu kartı alnına yapıştır veya unutma!</Text>
-            <TouchableOpacity style={styles.readyBtn} onPress={handleReady}>
-              <Text style={styles.readyBtnText}>Gördüm, Hazırım ✓</Text>
-            </TouchableOpacity>
+          <View style={{ flex: 1, paddingHorizontal: 20, justifyContent: 'center', alignItems: 'center', gap: 15 }}>
+            <View style={styles.passCard}>
+              <Text style={styles.passInstruction}>
+                Telefonu {current.name}'e ver,{'\n'}ekrana bakmadan kafasına koysun!
+              </Text>
+            </View>
+            <View style={styles.cardContainer}>
+              <Text style={styles.cardLabel}>Kart:</Text>
+              <Text style={styles.cardValue}>{current.card}</Text>
+            </View>
+            <TouchableOpacity 
+  style={{ backgroundColor: '#6366F1', padding: 14, borderRadius: 10, alignItems: 'center', marginTop: 20, width: '100%' }} 
+  onPress={handlePlayerReady}
+>
+  <Text style={styles.startBtnText}>Devam Et →</Text>
+</TouchableOpacity>
           </View>
         )}
       </View>
     );
   }
 
-  if (phase === 'result') {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={[styles.title, { fontSize: 40 }]}>🎉</Text>
-        <Text style={styles.title}>Oyun Bitti!</Text>
-        <Text style={[styles.subtitle, { marginTop: 10, marginBottom: 30 }]}>Herkes kartını tahmin etti!</Text>
+  // TAHMİN AŞAMASI
+  if (phase === 'guessing') {
+    const current = players[currentGuessIndex];
 
-        <View style={{ width: '100%', paddingHorizontal: 20 }}>
-          {players.map((player, idx) => (
-            <View key={idx} style={styles.resultRow}>
-              <Text style={styles.resultName}>{player.name}</Text>
-              <Text style={styles.resultCard}>{player.card}</Text>
-            </View>
-          ))}
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }]}>
+        <Text style={styles.title}>🎯 {current.name}</Text>
+        <Text style={[styles.subtitle, { marginBottom: 30, textAlign: 'center' }]}>
+          Kartını tahmin edebildi mi?
+        </Text>
+
+        <View style={styles.cardContainer}>
+          <Text style={styles.cardLabel}>Kartı:</Text>
+          <Text style={styles.cardValue}>{current.card}</Text>
         </View>
 
-        <View style={[styles.footer, { position: 'relative', marginTop: 30 }]}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => setPhase('setup')}>
-            <Text style={styles.backBtnText}>Tekrar Oyna</Text>
+        <View style={{ flexDirection: 'row', gap: 15, marginTop: 30, width: '100%' }}>
+          <TouchableOpacity
+            style={[styles.startBtn, { flex: 1, backgroundColor: '#10B981' }]}
+            onPress={() => handleGuessResult(true)}
+          >
+            <Text style={styles.startBtnText}>✓ Bildi!</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.startBtn} onPress={() => navigation.navigate('Home')}>
-            <Text style={styles.startBtnText}>Ana Menü</Text>
+          <TouchableOpacity
+            style={[styles.startBtn, { flex: 1, backgroundColor: '#EF4444' }]}
+            onPress={() => handleGuessResult(false)}
+          >
+            <Text style={styles.startBtnText}>✗ Bilemedi</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={[styles.hint, { marginTop: 20 }]}>
+          {currentGuessIndex + 1}/{players.length} oyuncu
+        </Text>
+      </View>
+    );
+  }
+
+  // TUR SONUCU
+  if (phase === 'roundResult') {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }]}>
+        <Text style={styles.title}>🏆 Puan Tablosu</Text>
+        <Text style={[styles.subtitle, { marginBottom: 30 }]}>Tur tamamlandı!</Text>
+
+        <View style={{ width: '100%' }}>
+          {[...players]
+            .sort((a, b) => b.score - a.score)
+            .map((player, idx) => (
+              <View key={idx} style={[styles.resultRow, idx === 0 && styles.winnerRow]}>
+                <Text style={styles.rank}>{idx + 1}.</Text>
+                <Text style={styles.resultName}>{player.name}</Text>
+                <Text style={styles.resultCard}>{player.score} puan</Text>
+                {idx === 0 && <Text style={{ fontSize: 20 }}>👑</Text>}
+              </View>
+            ))}
+        </View>
+
+        <View style={{ flexDirection: 'row', gap: 10, marginTop: 30, width: '100%' }}>
+          <TouchableOpacity style={[styles.backBtn, { flex: 1 }]} onPress={() => navigation.navigate('Home')}>
+            <Text style={styles.backBtnText}>Ana Menü</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.startBtn, { flex: 2 }]} onPress={startNewRound}>
+            <Text style={styles.startBtnText}>Yeni Tur →</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -343,6 +442,7 @@ const styles = StyleSheet.create({
   playerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 10 },
   playerNum: { color: '#64748B', fontSize: 16, width: 25 },
   input: { flex: 1, backgroundColor: '#1E293B', borderRadius: 10, padding: 12, color: '#F8FAFC', fontSize: 16, borderWidth: 1, borderColor: '#334155' },
+  bigInput: { backgroundColor: '#1E293B', borderRadius: 15, padding: 20, color: '#F8FAFC', fontSize: 24, fontWeight: 'bold', borderWidth: 2, borderColor: '#6366F1', textAlign: 'center', marginTop: 15 },
   removeBtn: { backgroundColor: '#EF4444', borderRadius: 20, width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
   removeBtnText: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
   addBtn: { backgroundColor: '#334155', padding: 12, borderRadius: 10, alignItems: 'center', borderWidth: 2, borderColor: '#6366F1', borderStyle: 'dashed' },
@@ -351,24 +451,20 @@ const styles = StyleSheet.create({
   backBtn: { flex: 1, backgroundColor: '#334155', padding: 15, borderRadius: 10, alignItems: 'center' },
   backBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
   startBtn: { flex: 2, backgroundColor: '#6366F1', padding: 15, borderRadius: 10, alignItems: 'center' },
-  startBtnDisabled: { opacity: 0.6 },
+  disabled: { opacity: 0.5 },
   startBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
-  passCard: { backgroundColor: '#1E293B', borderRadius: 15, padding: 25, alignItems: 'center', marginHorizontal: 20, marginBottom: 20, borderWidth: 2, borderColor: '#6366F1' },
-  passName: { fontSize: 28, fontWeight: 'bold', color: '#F8FAFC', marginBottom: 12 },
+  passCard: { backgroundColor: '#1E293B', borderRadius: 15, padding: 25, alignItems: 'center', marginBottom: 20, borderWidth: 2, borderColor: '#6366F1' },
+  passName: { fontSize: 24, fontWeight: 'bold', color: '#F8FAFC', marginBottom: 12 },
   passInstruction: { fontSize: 16, color: '#94A3B8', textAlign: 'center', lineHeight: 24 },
-  revealBtn: { backgroundColor: '#6366F1', marginHorizontal: 20, padding: 25, borderRadius: 15, alignItems: 'center' },
-  revealBtnText: { color: '#FFFFFF', fontSize: 22, fontWeight: 'bold' },
-  revealBtnSub: { color: 'rgba(255,255,255,0.7)', fontSize: 14, marginTop: 8 },
-  cardContainer: { backgroundColor: '#1E293B', marginHorizontal: 20, borderRadius: 15, padding: 25, alignItems: 'center' },
+  cardContainer: { backgroundColor: '#1E293B', borderRadius: 15, padding: 25, alignItems: 'center', width: '100%' },
   cardLabel: { fontSize: 14, color: '#94A3B8', marginBottom: 10 },
-  cardValue: { fontSize: 36, fontWeight: 'bold', color: '#F8FAFC', marginBottom: 10, textAlign: 'center' },
-  cardHint: { fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 20 },
-  readyBtn: { backgroundColor: '#10B981', padding: 15, borderRadius: 10, alignItems: 'center', width: '100%' },
-  readyBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
+  cardValue: { fontSize: 36, fontWeight: 'bold', color: '#F8FAFC', textAlign: 'center' },
+  resultRow: { backgroundColor: '#1E293B', padding: 16, borderRadius: 12, marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  winnerRow: { backgroundColor: '#2D1B0E', borderWidth: 2, borderColor: '#F59E0B' },
+  rank: { color: '#64748B', fontSize: 16, width: 25 },
+  resultName: { flex: 1, fontSize: 16, fontWeight: '600', color: '#F8FAFC' },
+  resultCard: { fontSize: 18, fontWeight: 'bold', color: '#6366F1' },
   guessCard: { backgroundColor: '#1E293B', padding: 16, borderRadius: 12, marginBottom: 10, borderWidth: 2, borderColor: '#334155' },
   guessCardDone: { borderColor: '#10B981', backgroundColor: '#022C22' },
   guessCardText: { color: '#F8FAFC', fontSize: 16, fontWeight: '600' },
-  resultRow: { backgroundColor: '#1E293B', padding: 16, borderRadius: 12, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  resultName: { fontSize: 16, fontWeight: '600', color: '#F8FAFC' },
-  resultCard: { fontSize: 16, color: '#6366F1', fontWeight: 'bold' },
 });
