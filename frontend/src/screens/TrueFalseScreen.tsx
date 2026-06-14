@@ -4,6 +4,7 @@ import {
   TextInput, ScrollView, Alert, ActivityIndicator,
 } from 'react-native';
 import { theme } from '../theme/theme';
+import { fetchTrueFalseQuestions } from '../services/api';
 
 interface Question {
   question: string;
@@ -142,15 +143,20 @@ export const TrueFalseScreen: React.FC<TrueFalseScreenProps> = ({ navigation }) 
     }
   };
 
-  const startClassic = () => {
+  const startClassic = async () => {
     const validNames = playerNames.filter(n => n.trim() !== '');
     if (validNames.length < 2) {
       Alert.alert('Eksik Oyuncu', 'En az 2 oyuncu gerekli!');
       return;
     }
-    const questionPool = difficulty === 'easy' ? EASY_QUESTIONS : difficulty === 'hard' ? HARD_QUESTIONS : MEDIUM_QUESTIONS;
-    const shuffled = [...questionPool].sort(() => Math.random() - 0.5).slice(0, questionCount);
-    startPlaying(shuffled, validNames);
+    setIsGenerating(true);
+    const questions = await fetchTrueFalseQuestions(difficulty, questionCount);
+    setIsGenerating(false);
+    if (!questions || questions.length === 0) {
+      Alert.alert('Hata', 'Sorular yüklenemedi.');
+      return;
+    }
+    startPlaying(questions, validNames);
   };
 
   const startPlaying = (qs: Question[], names: string[]) => {

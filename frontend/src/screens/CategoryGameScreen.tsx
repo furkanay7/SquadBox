@@ -4,32 +4,11 @@ import {
   TextInput, ScrollView, Alert, ActivityIndicator,
 } from 'react-native';
 import { theme } from '../theme/theme';
+import { fetchAllCategories } from '../services/api';
 
 interface CategoryGameScreenProps {
   navigation: any;
 }
-
-const CLASSIC_CATEGORIES = [
-  'Türkiye Şehirleri',
-  'Hayvanlar',
-  'Meyveler',
-  'Futbol Takımları',
-  'Ülkeler',
-  'Renk İsimleri',
-  'Türk Yemekleri',
-  'Meslekler',
-];
-
-const CLASSIC_WORD_LISTS: { [key: string]: string[] } = {
-  'Türkiye Şehirleri': ['istanbul', 'ankara', 'izmir', 'bursa', 'antalya', 'adana', 'konya', 'gaziantep', 'şanlıurfa', 'mersin', 'kayseri', 'eskişehir', 'trabzon', 'samsun', 'malatya', 'gebze', 'erzurum', 'denizli', 'van', 'batman', 'elazığ', 'diyarbakır', 'sakarya', 'manisa', 'balıkesir', 'kocaeli', 'muğla', 'tekirdağ', 'hatay', 'kahramanmaraş'],
-  'Hayvanlar': ['aslan', 'kaplan', 'fil', 'zürafa', 'penguen', 'köpek', 'kedi', 'at', 'inek', 'kuş', 'balık', 'yılan', 'timsah', 'ahtapot', 'köpekbalığı', 'kartal', 'baykuş', 'tavşan', 'ayı', 'kurt', 'tilki', 'maymun', 'goril', 'zebra', 'gergedan', 'hipopotam', 'deve', 'kanguru', 'koala', 'panda'],
-  'Meyveler': ['elma', 'armut', 'muz', 'portakal', 'çilek', 'kiraz', 'üzüm', 'karpuz', 'kavun', 'şeftali', 'erik', 'vişne', 'kayısı', 'ananas', 'mango', 'papaya', 'kivi', 'limon', 'mandalina', 'greyfurt', 'incir', 'nar', 'dut', 'ahududu', 'böğürtlen', 'yaban mersini', 'avokado', 'hindistancevizi', 'hurma', 'muşmula'],
-  'Futbol Takımları': ['galatasaray', 'fenerbahçe', 'beşiktaş', 'trabzonspor', 'bursaspor', 'başakşehir', 'sivasspor', 'konyaspor', 'antalyaspor', 'adanaspor', 'real madrid', 'barcelona', 'atletico madrid', 'manchester united', 'manchester city', 'liverpool', 'chelsea', 'arsenal', 'juventus', 'milan', 'inter', 'napoli', 'psg', 'bayern münih', 'dortmund', 'ajax', 'benfica', 'porto', 'roma', 'arsenal'],
-  'Ülkeler': ['türkiye', 'almanya', 'fransa', 'ispanya', 'italya', 'japonya', 'çin', 'hindistan', 'brezilya', 'arjantin', 'meksika', 'kanada', 'avustralya', 'rusya', 'mısır', 'güney afrika', 'nijerya', 'kenya', 'suudi arabistan', 'iran', 'irak', 'suriye', 'yunanistan', 'polonya', 'hollanda', 'belçika', 'isveç', 'norveç', 'danimarka', 'finlandiya'],
-  'Renk İsimleri': ['kırmızı', 'mavi', 'yeşil', 'sarı', 'turuncu', 'mor', 'pembe', 'beyaz', 'siyah', 'gri', 'kahverengi', 'lacivert', 'turkuaz', 'bordo', 'bej', 'krem', 'altın', 'gümüş', 'bronz', 'eflatun', 'leylak', 'mercan', 'limon sarısı', 'fıstık yeşili', 'kiremit', 'tarçın', 'şarap', 'zeytin yeşili', 'gece mavisi', 'pudra pembe'],
-  'Türk Yemekleri': ['kebap', 'köfte', 'dolma', 'sarma', 'börek', 'baklava', 'künefe', 'lahmacun', 'pide', 'mantı', 'mercimek çorbası', 'ezogelin', 'tarhana', 'pilav', 'makarna', 'karnıyarık', 'imam bayıldı', 'çorba', 'cacık', 'ayran', 'şiş kebap', 'adana kebap', 'urfa kebap', 'döner', 'iskender', 'çiğ köfte', 'gözleme', 'simit', 'poğaça', 'açma'],
-  'Meslekler': ['doktor', 'öğretmen', 'mühendis', 'avukat', 'hemşire', 'pilot', 'şef', 'mimar', 'psikolog', 'eczacı', 'diş hekimi', 'veteriner', 'polis', 'asker', 'itfaiyeci', 'gazeteci', 'oyuncu', 'müzisyen', 'ressam', 'sporcu', 'çiftçi', 'balıkçı', 'kasap', 'berber', 'terzi', 'şoför', 'tamirci', 'elektrikçi', 'tesisatçı', 'marangoz'],
-};
 
 export const CategoryGameScreen: React.FC<CategoryGameScreenProps> = ({ navigation }) => {
   const [phase, setPhase] = useState<'setup' | 'playing' | 'result'>('setup');
@@ -104,8 +83,16 @@ export const CategoryGameScreen: React.FC<CategoryGameScreenProps> = ({ navigati
       cat = aiResult.category;
       setValidWords(aiResult.words.map((w: string) => w.toLowerCase()));
     } else {
-      cat = selectedCategory;
-      setValidWords(CLASSIC_WORD_LISTS[selectedCategory] || []);
+      setIsGenerating(true);
+      const categories = await fetchAllCategories();
+      setIsGenerating(false);
+      if (!categories || categories.length === 0) {
+        Alert.alert('Hata', 'Kategoriler yüklenemedi.');
+        return;
+      }
+      const randomCat = categories[Math.floor(Math.random() * categories.length)];
+      cat = randomCat.name;
+      setValidWords(randomCat.words.map((w: string) => w.toLowerCase()));
     }
 
     setCategory(cat);

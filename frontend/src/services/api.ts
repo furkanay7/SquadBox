@@ -72,3 +72,25 @@ export const generateAISpyfallLocations = async (theme: string, count: number = 
         return null;
     }
 };
+
+export const fetchTrueFalseQuestions = async (difficulty: string = 'medium', count: number = 10) => {
+    try {
+        const response = await fetch(`${BASE_URL}/truefalse/all?difficulty=${difficulty}&count=${count}`);
+        if (!response.ok) throw new Error('Hata');
+        return await response.json();
+    } catch (error) {
+        console.error("Sorular çekilirken hata:", error);
+        return null;
+    }
+};
+
+export const fetchAllCategories = async () => {
+    try {
+        const response = await fetch(`${BASE_URL}/category/all`);
+        if (!response.ok) throw new Error('Hata');
+        return await response.json();
+    } catch (error) {
+        console.error("Kategoriler çekilirken hata:", error);
+        return null;
+    }
+};
