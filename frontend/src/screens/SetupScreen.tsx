@@ -105,20 +105,18 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
           return;
         }
 
-        navigation.navigate('TabooTurnIntro', {
-          players: validPlayers,
-          timer,
-          rounds,
-          passLimit,
-          teamAName: teamAName.trim() || 'Takım A',
-          teamBName: teamBName.trim() || 'Takım B',
-          currentPlayerIndex: 0,
-          currentRound: 1,
-          teamAScore: 0,
-          teamBScore: 0,
-          aiCards: cards,
-          gameMode: 'ai',
-        });
+        navigation.navigate('TabooGame', {
+  players: validPlayers,
+  timer,
+  rounds,
+  passLimit,
+  teamAName: teamAName.trim() || 'Takım A',
+  teamBName: teamBName.trim() || 'Takım B',
+  teamAScore: 0,
+  teamBScore: 0,
+  aiCards: gameMode === 'ai' ? cards : null,
+  gameMode,
+});
       } else {
         navigation.navigate('TabooTurnIntro', {
           players: validPlayers,
@@ -267,35 +265,88 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ navigation, route }) =
           </View>
         )}
 
-        {/* Oyuncular */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Oyuncular</Text>
-          <Text style={styles.hintText}>
-            En az {gameType === 'taboo' ? '4' : '3'} oyuncu gerekli
-          </Text>
-          
-          {players.map((player, index) => (
-            <View key={player.id} style={styles.playerRow}>
-              <Text style={styles.playerNumber}>{index + 1}.</Text>
-              <TextInput
-                style={[styles.input, player.name.trim() === '' && styles.inputEmpty]}
-                placeholder={`Oyuncu ${index + 1} ismi`}
-                placeholderTextColor="#64748B"
-                value={player.name}
-                onChangeText={(text) => updatePlayerName(player.id, text)}
-                maxLength={20}
-              />
-              <TouchableOpacity style={styles.removeButton} onPress={() => removePlayer(player.id)}>
-                <Text style={styles.removeButtonText}>×</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-          
-          <TouchableOpacity style={styles.addButton} onPress={addPlayer}>
-            <Text style={styles.addButtonText}>+ Oyuncu Ekle</Text>
+        {/* Players Section */}
+<View style={styles.section}>
+  <Text style={styles.sectionTitle}>Oyuncular</Text>
+
+  {gameType === 'taboo' ? (
+    <>
+      {/* Takım A */}
+      <View style={[styles.teamDivider, { backgroundColor: '#6366F1' }]}>
+        <Text style={styles.teamDividerText}>{teamAName || 'Takım A'}</Text>
+      </View>
+      {players.filter((_, i) => i < Math.ceil(players.length / 2)).map((player, index) => (
+        <View key={player.id} style={styles.playerRow}>
+          <Text style={styles.playerNumber}>{index + 1}.</Text>
+          <TextInput
+            style={[styles.input, player.name.trim() === '' && styles.inputEmpty]}
+            placeholder={`Oyuncu ${index + 1}`}
+            placeholderTextColor="#64748B"
+            value={player.name}
+            onChangeText={(text) => updatePlayerName(player.id, text)}
+            maxLength={20}
+          />
+          <TouchableOpacity style={styles.removeButton} onPress={() => removePlayer(player.id)}>
+            <Text style={styles.removeButtonText}>×</Text>
           </TouchableOpacity>
         </View>
+      ))}
+      <TouchableOpacity style={styles.addButton} onPress={addPlayer}>
+        <Text style={styles.addButtonText}>+ Takım A'ya Oyuncu Ekle</Text>
+      </TouchableOpacity>
 
+      {/* Takım B */}
+      <View style={[styles.teamDivider, { backgroundColor: '#6366F1', marginTop: 16 }]}>
+        <Text style={styles.teamDividerText}>{teamBName || 'Takım B'}</Text>
+      </View>
+      {players.filter((_, i) => i >= Math.ceil(players.length / 2)).map((player, index) => {
+        const realIndex = Math.ceil(players.length / 2) + index;
+        return (
+          <View key={player.id} style={styles.playerRow}>
+            <Text style={styles.playerNumber}>{realIndex + 1}.</Text>
+            <TextInput
+              style={[styles.input, player.name.trim() === '' && styles.inputEmpty]}
+              placeholder={`Oyuncu ${realIndex + 1}`}
+              placeholderTextColor="#64748B"
+              value={player.name}
+              onChangeText={(text) => updatePlayerName(player.id, text)}
+              maxLength={20}
+            />
+            <TouchableOpacity style={styles.removeButton} onPress={() => removePlayer(player.id)}>
+              <Text style={styles.removeButtonText}>×</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      })}
+      <TouchableOpacity style={[styles.addButton, { borderColor: '#6366F1' }]} onPress={addPlayer}>
+        <Text style={[styles.addButtonText, { color: '#6366F1' }]}>+ Takım B'ye Oyuncu Ekle</Text>
+      </TouchableOpacity>
+    </>
+  ) : (
+    <>
+      <Text style={styles.hintText}>En az {gameType === 'spyfall' ? '3' : '2'} oyuncu gerekli</Text>
+      {players.map((player, index) => (
+        <View key={player.id} style={styles.playerRow}>
+          <Text style={styles.playerNumber}>{index + 1}.</Text>
+          <TextInput
+            style={[styles.input, player.name.trim() === '' && styles.inputEmpty]}
+            placeholder={`Oyuncu ${index + 1} ismi`}
+            placeholderTextColor="#64748B"
+            value={player.name}
+            onChangeText={(text) => updatePlayerName(player.id, text)}
+            maxLength={20}
+          />
+          <TouchableOpacity style={styles.removeButton} onPress={() => removePlayer(player.id)}>
+            <Text style={styles.removeButtonText}>×</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+      <TouchableOpacity style={styles.addButton} onPress={addPlayer}>
+        <Text style={styles.addButtonText}>+ Oyuncu Ekle</Text>
+      </TouchableOpacity>
+    </>
+  )}
+</View>
         {/* Oyun Ayarları */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Oyun Ayarları</Text>
@@ -438,4 +489,16 @@ const styles = StyleSheet.create({
   startButtonDisabled: { backgroundColor: '#334155', opacity: 0.6 },
   startButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
   generatingContainer: { flexDirection: 'row', alignItems: 'center' },
+  teamDivider: {
+  paddingHorizontal: 12,
+  paddingVertical: 6,
+  borderRadius: 8,
+  marginBottom: 8,
+  alignSelf: 'flex-start',
+},
+teamDividerText: {
+  color: '#FFFFFF',
+  fontSize: 13,
+  fontWeight: 'bold',
+},
 });

@@ -318,9 +318,9 @@ export const TrueFalseScreen: React.FC<TrueFalseScreenProps> = ({ navigation }) 
         <View style={{ flexDirection: 'row', paddingHorizontal: 20, gap: 10, marginTop: 10 }}>
   <TouchableOpacity 
     style={[s.secondaryBtn, { flex: 1 }]} 
-    onPress={() => navigation.goBack()}
+    onPress={() => setPhase('setup')}
   >
-    <Text style={s.secondaryBtnText}>← Geri</Text>
+    <Text style={s.secondaryBtnText}>↩ Yeniden Kur</Text>
   </TouchableOpacity>
   <TouchableOpacity 
     style={[s.secondaryBtn, { flex: 1 }]} 

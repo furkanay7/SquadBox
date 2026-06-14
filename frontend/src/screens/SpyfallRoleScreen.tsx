@@ -189,13 +189,17 @@ export const SpyfallRoleScreen: React.FC<SpyfallRoleScreenProps> = ({ navigation
     const isSpy = index === gameState.spyIndex;
     
     if (isSpy) {
+      // Masumlar casusu doğru buldu — masumlar puan kazanır, oyun biter
       const updatedScores = scores.map((s) => !s.isSpy ? { ...s, score: s.score + 1 } : s);
       setScores(updatedScores);
-      handleRoundEnd(updatedScores, `Tebrikler! ${players[index].name} casustu. Diğer oyuncular 1'er puan kazandı!`);
+      handleRoundEnd(updatedScores, `Tebrikler! ${players[index].name} casustu. Köylüler 1'er puan kazandı!`);
     } else {
-      const updatedScores = scores.map((s) => s.isSpy ? { ...s, score: s.score + 2 } : s);
-      setScores(updatedScores);
-      handleRoundEnd(updatedScores, `Yanlış tahmin! Casus ${players[gameState.spyIndex].name} idi. Casus 2 puan kazandı!`);
+      // Yanlış tahmin — casus lokasyonu tahmin edebilir
+      Alert.alert(
+        '❌ Yanlış Tahmin!',
+        `${players[index].name} casus değil! Casus lokasyonu tahmin etmeye çalışacak.`,
+        [{ text: 'Devam', onPress: () => setGamePhase('guessLocation') }]
+      );
     }
   };
 
@@ -204,13 +208,13 @@ export const SpyfallRoleScreen: React.FC<SpyfallRoleScreenProps> = ({ navigation
     const isCorrect = locationName === gameState.location;
     
     if (isCorrect) {
+      // Casus lokasyonu doğru bildi — casus puan kazanır
       const updatedScores = scores.map((s) => s.isSpy ? { ...s, score: s.score + 2 } : s);
       setScores(updatedScores);
-      handleRoundEnd(updatedScores, `Doğru tahmin! Casus lokasyonu bildi ve 2 puan kazandı!`);
+      handleRoundEnd(updatedScores, `Casus lokasyonu doğru tahmin etti ve 2 puan kazandı!`);
     } else {
-      const updatedScores = scores.map((s) => !s.isSpy ? { ...s, score: s.score + 1 } : s);
-      setScores(updatedScores);
-      handleRoundEnd(updatedScores, `Yanlış tahmin! Doğru lokasyon: ${gameState.location}. Diğer oyuncular 1'er puan kazandı!`);
+      // Casus da bilemedi — kimse puan kazanmaz
+      handleRoundEnd(scores, `Casus da lokasyonu bilemedi! Doğru lokasyon: ${gameState.location}. Bu turda kimse puan kazanmadı.`);
     }
   };
 
@@ -387,13 +391,10 @@ export const SpyfallRoleScreen: React.FC<SpyfallRoleScreenProps> = ({ navigation
           </TouchableOpacity>
 
           <View style={styles.buttonsContainer}>
-            <TouchableOpacity style={styles.guessSpyButton} onPress={handleGuessSpy}>
-              <Text style={styles.guessSpyButtonText}>🕵️ Casusu Tahmin Et</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.guessLocationButton} onPress={handleSpyGuessLocation}>
-              <Text style={styles.guessLocationButtonText}>📍 Lokasyonu Tahmin Et</Text>
-            </TouchableOpacity>
-          </View>
+  <TouchableOpacity style={styles.guessSpyButton} onPress={handleGuessSpy}>
+    <Text style={styles.guessSpyButtonText}>🕵️ Tahmin Et</Text>
+  </TouchableOpacity>
+</View>
         </View>
 
         <TouchableOpacity style={styles.minimalistBackButton} onPress={() => navigation.goBack()}>

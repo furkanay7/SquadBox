@@ -15,6 +15,17 @@ export const fetchRandomTabooWord = async () => {
     }
 };
 
+export const fetchAllTabooWords = async () => {
+    try {
+        const response = await fetch(`${BASE_URL}/taboo/all`);
+        if (!response.ok) throw new Error('Hata');
+        return await response.json();
+    } catch (error) {
+        console.error("Tüm kelimeler çekilirken hata:", error);
+        return null;
+    }
+};
+
 export const fetchSpyfallStart = async (playerCount: number) => {
     try {
         // Backend'e oyuncu sayısını (player_count) gönderiyoruz ki rolleri ona göre ayarlasın

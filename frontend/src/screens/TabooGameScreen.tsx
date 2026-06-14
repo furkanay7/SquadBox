@@ -1,13 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  ScrollView,
-} from 'react-native';
-import { fetchRandomTabooWord } from '../services/api';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { fetchAllTabooWords } from '../services/api';
 
 interface TabooGameScreenProps {
   navigation: any;
@@ -15,106 +8,95 @@ interface TabooGameScreenProps {
 }
 
 export const TabooGameScreen: React.FC<TabooGameScreenProps> = ({ navigation, route }) => {
-  const { 
-    players, 
-    timer: initialTimer, 
-    rounds, 
+  const {
+    players,
+    timer: initialTimer,
+    rounds,
     passLimit,
-    teamAName = 'Takım A', 
+    teamAName = 'Takım A',
     teamBName = 'Takım B',
-    currentPlayerIndex = 0,
-    currentRound = 1,
-    teamAScore = 0,
-    teamBScore = 0,
+    teamAScore: initScoreA = 0,
+    teamBScore: initScoreB = 0,
     aiCards = null,
     gameMode = 'classic',
-  } = route.params || {
-    players: [{ name: 'Oyuncu 1' }, { name: 'Oyuncu 2' }, { name: 'Oyuncu 3' }, { name: 'Oyuncu 4' }],
-    timer: 60,
-    rounds: 3,
-    passLimit: 3,
-    teamAName: 'Takım A',
-    teamBName: 'Takım B',
-    currentPlayerIndex: 0,
-    currentRound: 1,
-    teamAScore: 0,
-    teamBScore: 0,
-  };
+  } = route.params || {};
 
-  const totalPlayers = players.length;
-  
-  // Team distribution: First half = Team A, Second half = Team B
-  // 6 players: 0,1,2 = A, 3,4,5 = B
-  // 5 players: 0,1,2 = A, 3,4 = B  (majority to A)
-  // 4 players: 0,1 = A, 2,3 = B
+  const totalPlayers = players?.length || 4;
   const teamASize = Math.ceil(totalPlayers / 2);
-  
-  // Current player and team
-  const [currentPlayerIdx, setCurrentPlayerIdx] = useState(currentPlayerIndex);
-  const currentPlayer = players[currentPlayerIdx % totalPlayers];
-  const currentTeamIndex = currentPlayerIdx < teamASize ? 0 : 1; // 0 = Team A, 1 = Team B
-  const currentTeamName = currentTeamIndex === 0 ? teamAName : teamBName;
-  const currentTeamScore = currentTeamIndex === 0 ? teamAScore : teamBScore;
+  const teamBSize = totalPlayers - teamASize;
 
-  // Game state
-  const [currentWord, setCurrentWord] = useState<any>(null);
-  const [isLoadingWord, setIsLoadingWord] = useState(true);
+  // Takım oyuncuları
+  const teamAPlayers = players?.slice(0, teamASize) || [];
+  const teamBPlayers = players?.slice(teamASize) || [];
+
+  // Oyun state
+  const [round, setRound] = useState(1);
+  const [teamATurn, setTeamATurn] = useState(0); // Takım A'dan sıradaki index
+  const [teamBTurn, setTeamBTurn] = useState(0); // Takım B'den sıradaki index
+  const [isTeamATurn, setIsTeamATurn] = useState(true); // Hangi takım oynuyor
+  const [scores, setScores] = useState({ teamA: initScoreA, teamB: initScoreB });
   const [timeLeft, setTimeLeft] = useState(initialTimer);
   const [isPlaying, setIsPlaying] = useState(false);
   const [passesUsed, setPassesUsed] = useState(0);
   const [tabooCount, setTabooCount] = useState(0);
-  const [gamePhase, setGamePhase] = useState<'playing' | 'scoreboard'>('playing');
-  
-  // Global turn counter - increments after each player's turn
-  const [turnCounter, setTurnCounter] = useState(1);
-  const [round, setRound] = useState(currentRound);
-  const totalTurns = totalPlayers * rounds; // Mathematical formula: Players × Rounds
+  const [gamePhase, setGamePhase] = useState<'playing' | 'turnEnd' | 'scoreboard'>('playing');
+  const [currentWord, setCurrentWord] = useState<any>(null);
+  const [isLoadingWord, setIsLoadingWord] = useState(false);
+  const [turnsThisRound, setTurnsThisRound] = useState(0); // Bu turda kaç hamle yapıldı
+  const [playerStats, setPlayerStats] = useState<{[key: string]: {correct: number, pass: number, taboo: number}}>(
+    () => Object.fromEntries(players?.map((p: any) => [p.name, {correct: 0, pass: 0, taboo: 0}]) || [])
+  );
 
-  // Scores
-  const [scores, setScores] = useState({
-    teamA: teamAScore,
-    teamB: teamBScore,
-  });
+  const isGameEnded = useRef(false);
+  const aiCardIndex = useRef(0);
+  const classicCards = useRef<any[]>([]);
+  const classicCardIndex = useRef(0);
 
-  const isGameEnded = React.useRef(false);
+  // Mevcut oyuncu
+  const currentPlayer = isTeamATurn
+    ? teamAPlayers[teamATurn % teamASize]
+    : teamBPlayers[teamBTurn % teamBSize];
+  const currentTeamName = isTeamATurn ? teamAName : teamBName;
+
   const passDisabled = passLimit !== 999 && passesUsed >= passLimit;
+  const totalTurnsPerRound = totalPlayers; // Her turda toplam hamle sayısı
 
-const aiCardIndex = React.useRef(0);
-const classicCards = React.useRef<any[]>([]);
-const classicCardIndex = React.useRef(0);
-
-  const loadNewWord = async () => {
-    if (gameMode === 'ai' && aiCards && aiCards.length > 0) {
-      const index = aiCardIndex.current % aiCards.length;
-      setCurrentWord(aiCards[index]);
-      aiCardIndex.current += 1;
-    } else if (classicCards.current.length > 0) {
-      const index = classicCardIndex.current % classicCards.current.length;
-      setCurrentWord(classicCards.current[index]);
-      classicCardIndex.current += 1;
-    }
-    setIsLoadingWord(false);
-  };
-
-// Component yüklendiğinde ilk kelimeyi backend'den çek
-useEffect(() => {
-    const preloadWords = async () => {
-      setIsLoadingWord(true);
+  // Kelimeleri önceden yükle
+  useEffect(() => {
+    const preload = async () => {
       if (gameMode !== 'ai') {
-        const promises = Array(20).fill(null).map(() => fetchRandomTabooWord());
-        const words = await Promise.all(promises);
-        classicCards.current = words.filter(Boolean);
+        setIsLoadingWord(true);
+        const words = await fetchAllTabooWords();
+        if (words) {
+          classicCards.current = words.sort(() => Math.random() - 0.5);
+          classicCardIndex.current = 0;
+        }
+        setIsLoadingWord(false);
       }
       loadNewWord();
+      setIsPlaying(true);
     };
-    preloadWords();
+    preload();
   }, []);
 
+  const loadNewWord = useCallback(() => {
+    if (gameMode === 'ai' && aiCards && aiCards.length > 0) {
+      const idx = aiCardIndex.current % aiCards.length;
+      setCurrentWord(aiCards[idx]);
+      aiCardIndex.current += 1;
+    } else if (classicCards.current.length > 0) {
+      const idx = classicCardIndex.current % classicCards.current.length;
+      setCurrentWord(classicCards.current[idx]);
+      classicCardIndex.current += 1;
+    }
+  }, [gameMode, aiCards]);
+
+  // Timer
   useEffect(() => {
     let interval: any;
     if (isPlaying && timeLeft > 0) {
       interval = setInterval(() => {
-        setTimeLeft((prev: number) => {
+        setTimeLeft(prev => {
           if (prev <= 1) {
             handleTurnEnd();
             return 0;
@@ -126,117 +108,98 @@ useEffect(() => {
     return () => clearInterval(interval);
   }, [isPlaying, timeLeft]);
 
-const handleTurnEnd = () => {
+  const handleTurnEnd = () => {
     if (isGameEnded.current) return;
     setIsPlaying(false);
-    
-    // Increment global turn counter
-    const newTurnCounter = turnCounter + 1;
-    setTurnCounter(newTurnCounter);
-    
-    // Check if game is over: turnCounter === players × rounds
-    // Last turn is when newTurnCounter equals totalTurns
-    if (newTurnCounter >= totalTurns) {
-      // This was the last turn - game over, go directly to scoreboard
-      setGamePhase('scoreboard');
-      return;
-    }
-    
+    setGamePhase('turnEnd');
+  };
 
-    
-    // Calculate which player is next (0 to totalPlayers-1)
-    const nextPlayerIdx = newTurnCounter % totalPlayers;
-    
-    // Check if round is complete (nextPlayer is 0, meaning we cycled through all players)
-    if (nextPlayerIdx === 0) {
-      // Round complete, go to next round
-      const nextRound = currentRound + 1;
-      Alert.alert(
-        `Tur ${currentRound} Tamamlandı!`,
-        `Tüm oyuncular anlattı. ${nextRound}. tur başlıyor...`,
-        [{ text: 'Devam', onPress: () => {
-          setRound(nextRound);
-          setCurrentPlayerIdx(0);
-          setTimeLeft(initialTimer);
-          setPassesUsed(0);
-          // Go to turn intro for next round
-          navigation.navigate('TabooTurnIntro', {
-            players,
-            timer: initialTimer,
-            rounds,
-            passLimit,
-            teamAName,
-            teamBName,
-            currentPlayerIndex: 0,
-            currentRound: nextRound,
-            teamAScore: scores.teamA,
-            teamBScore: scores.teamB,
-          });
-        }}]
-      );
+  const goToNextTurn = () => {
+    const newTurnsThisRound = turnsThisRound + 1;
+
+    if (newTurnsThisRound >= totalTurnsPerRound) {
+      if (round >= rounds) {
+        setGamePhase('scoreboard');
+      } else {
+        setRound(prev => prev + 1);
+        setTurnsThisRound(0);
+        setIsTeamATurn(true);
+        setTeamATurn(prev => prev + 1);
+        setTeamBTurn(prev => prev + 1);
+        setTimeLeft(initialTimer);
+        setPassesUsed(0);
+        loadNewWord();
+        setGamePhase('playing');
+        setIsPlaying(true);
+      }
     } else {
-      // Next player in same round
-      Alert.alert(
-        'Süre Doldu!',
-        `Sıradaki oyuncuya geçiliyor...`,
-        [{ text: 'Devam', onPress: () => {
-          setCurrentPlayerIdx(nextPlayerIdx);
-          setTimeLeft(initialTimer);
-          setPassesUsed(0);
-          // Go to turn intro
-          navigation.navigate('TabooTurnIntro', {
-            players,
-            timer: initialTimer,
-            rounds,
-            passLimit,
-            teamAName,
-            teamBName,
-            currentPlayerIndex: nextPlayerIdx,
-            currentRound: currentRound,
-            teamAScore: scores.teamA,
-            teamBScore: scores.teamB,
-          });
-        }}]
-      );
+      if (isTeamATurn) {
+        setIsTeamATurn(false);
+      } else {
+        setIsTeamATurn(true);
+        setTeamATurn(prev => prev + 1);
+        setTeamBTurn(prev => prev + 1);
+      }
+      setTurnsThisRound(newTurnsThisRound);
+      setTimeLeft(initialTimer);
+      setPassesUsed(0);
+      loadNewWord();
+      setGamePhase('playing');
+      setIsPlaying(true);
     }
+  };
+
+  const startTurn = () => {
+    loadNewWord();
+    setGamePhase('playing');
+    setIsPlaying(true);
   };
 
   const handleCorrect = useCallback(() => {
     setScores(prev => ({
       ...prev,
-      [currentTeamIndex === 0 ? 'teamA' : 'teamB']: 
-        prev[currentTeamIndex === 0 ? 'teamA' : 'teamB'] + 1
+      [isTeamATurn ? 'teamA' : 'teamB']:
+        prev[isTeamATurn ? 'teamA' : 'teamB'] + 1,
     }));
-    nextWord();
-  }, [currentTeamIndex, teamAName, teamBName]);
+    setPlayerStats(prev => ({
+      ...prev,
+      [currentPlayer?.name]: {
+        ...prev[currentPlayer?.name],
+        correct: (prev[currentPlayer?.name]?.correct || 0) + 1,
+      }
+    }));
+    loadNewWord();
+  }, [isTeamATurn, loadNewWord, currentPlayer]);
 
   const handlePass = useCallback(() => {
     if (passDisabled) return;
     setPassesUsed(prev => prev + 1);
-    nextWord();
-  }, [passDisabled]);
+    setPlayerStats(prev => ({
+      ...prev,
+      [currentPlayer?.name]: {
+        ...prev[currentPlayer?.name],
+        pass: (prev[currentPlayer?.name]?.pass || 0) + 1,
+      }
+    }));
+    loadNewWord();
+  }, [passDisabled, loadNewWord, currentPlayer]);
 
   const handleTaboo = useCallback(() => {
-    setTabooCount((prev) => prev + 1);
+    setTabooCount(prev => prev + 1);
     setScores(prev => ({
       ...prev,
-      [currentTeamIndex === 0 ? 'teamA' : 'teamB']: 
-        Math.max(0, prev[currentTeamIndex === 0 ? 'teamA' : 'teamB'] - 1)
+      [isTeamATurn ? 'teamA' : 'teamB']:
+        prev[isTeamATurn ? 'teamA' : 'teamB'] - 1,
     }));
-    nextWord();
-  }, [currentTeamIndex]);
-
-  const nextWord = () => {
+    setPlayerStats(prev => ({
+      ...prev,
+      [currentPlayer?.name]: {
+        ...prev[currentPlayer?.name],
+        taboo: (prev[currentPlayer?.name]?.taboo || 0) + 1,
+      }
+    }));
     loadNewWord();
-  };
-
-  const startGame = () => {
-    setIsPlaying(true);
-  };
-
-  const pauseGame = () => {
-    setIsPlaying(false);
-  };
+  }, [isTeamATurn, loadNewWord, currentPlayer]);
 
   const endGame = () => {
     isGameEnded.current = true;
@@ -244,554 +207,334 @@ const handleTurnEnd = () => {
     setGamePhase('scoreboard');
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
-  // Scoreboard View
-  if (gamePhase === 'scoreboard') {
-    const winner = scores.teamA > scores.teamB ? teamAName : 
-                   scores.teamB > scores.teamA ? teamBName : null;
-    const isDraw = scores.teamA === scores.teamB;
+  const capitalize = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
 
+  // ── INTRO ──────────────────────────────────────────
+  if (gamePhase === 'intro') {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>🏆 Puan Tablosu</Text>
-          <Text style={styles.roundInfo}>Oyun Bitti!</Text>
+      <View style={st.container}>
+        <View style={st.header}>
+          <Text style={st.headerTitle}>Anlat Bakalım</Text>
+          <Text style={st.roundInfo}>Tur {round}/{rounds}</Text>
         </View>
 
-        <View style={styles.scoreboardContainer}>
-          <View 
-            style={[
-              styles.teamCard, 
-              winner === teamAName && styles.winnerCard
-            ]}
-          >
-            <Text style={styles.teamName}>{teamAName}</Text>
-            <Text style={styles.teamScore}>{scores.teamA}</Text>
-            <Text style={styles.teamLabel}>puan</Text>
-            {winner === teamAName && (
-              <Text style={styles.winnerBadge}>👑 Kazanan</Text>
-            )}
+        <View style={st.scoreBoard}>
+          <View style={[st.teamBadge, isTeamATurn && st.activeTeamBadge]}>
+            <Text style={[st.teamBadgeText, isTeamATurn && st.activeTeamBadgeText]}>
+              {teamAName}: {scores.teamA}
+            </Text>
           </View>
-
-          <View style={styles.vsContainer}>
-            <Text style={styles.vsText}>VS</Text>
-          </View>
-
-          <View 
-            style={[
-              styles.teamCard, 
-              winner === teamBName && styles.winnerCard
-            ]}
-          >
-            <Text style={styles.teamName}>{teamBName}</Text>
-            <Text style={styles.teamScore}>{scores.teamB}</Text>
-            <Text style={styles.teamLabel}>puan</Text>
-            {winner === teamBName && (
-              <Text style={styles.winnerBadge}>👑 Kazanan</Text>
-            )}
+          <View style={[st.teamBadge, !isTeamATurn && st.activeTeamBadge]}>
+            <Text style={[st.teamBadgeText, !isTeamATurn && st.activeTeamBadgeText]}>
+              {teamBName}: {scores.teamB}
+            </Text>
           </View>
         </View>
 
-        {isDraw && (
-          <View style={styles.drawContainer}>
-            <Text style={styles.drawText}>🤝 Berabere!</Text>
+        <View style={st.introCard}>
+          <View style={[st.teamLabel, { backgroundColor: isTeamATurn ? '#6366F1' : '#EC4899' }]}>
+            <Text style={st.teamLabelText}>{currentTeamName}</Text>
           </View>
-        )}
-
-        <View style={styles.statsContainer}>
-          <Text style={styles.statsTitle}>Oyun İstatistikleri</Text>
-          <Text style={styles.statsText}>Toplam Tur: {rounds}</Text>
-          <Text style={styles.statsText}>Tabu Sayısı: {tabooCount}</Text>
-          <Text style={styles.statsText}>Toplam Pas: {passesUsed}</Text>
+          <Text style={st.introSira}>Sıra</Text>
+          <Text style={st.introPlayer}>{currentPlayer?.name}</Text>
+          <Text style={st.introSira}>de</Text>
+          <View style={st.infoRow}>
+            <Text style={st.infoText}>⏱ {initialTimer} saniye</Text>
+            {passLimit !== 999 && <Text style={st.infoText}>↩ {passLimit} pas</Text>}
+          </View>
         </View>
 
-        {/* Spacer to push buttons down */}
-        <View style={styles.spacer} />
-
-        {/* Fixed bottom buttons */}
-        <View style={styles.fixedFooter}>
-          <TouchableOpacity 
-            style={styles.restartButton} 
-            onPress={() => {
-              navigation.navigate('TabooTurnIntro', {
-                players,
-                timer: initialTimer,
-                rounds,
-                passLimit,
-                teamAName,
-                teamBName,
-                currentPlayerIndex: 0,
-                currentRound: 1,
-                teamAScore: 0,
-                teamBScore: 0,
-              });
-            }}
-          >
-            <Text style={styles.restartButtonText}>Yeniden Oyna</Text>
+        <View style={st.fixedFooter}>
+          <TouchableOpacity style={st.secondaryBtn} onPress={() => navigation.navigate('Home')}>
+            <Text style={st.secondaryBtnText}>Ana Menü</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.homeButton} 
-            onPress={() => navigation.navigate('Home')}
-          >
-            <Text style={styles.homeButtonText}>Ana Menü</Text>
+          <TouchableOpacity style={[st.primaryBtn, { backgroundColor: isTeamATurn ? '#6366F1' : '#EC4899' }]} onPress={startTurn}>
+            <Text style={st.primaryBtnText}>BAŞLAT</Text>
           </TouchableOpacity>
         </View>
       </View>
     );
   }
 
-  // Playing View
+  if (gamePhase === 'turnEnd') {
+    // Sıradaki oyuncuyu hesapla
+    const nextIsTeamA = !isTeamATurn;
+const nextTeamATurnIdx = isTeamATurn ? teamATurn : teamATurn + 1;
+const nextTeamBTurnIdx = isTeamATurn ? teamBTurn : teamBTurn;
+const nextPlayer = nextIsTeamA
+  ? teamAPlayers[nextTeamATurnIdx % teamASize]
+  : teamBPlayers[nextTeamBTurnIdx % teamBSize];
+const nextTeamName = nextIsTeamA ? teamAName : teamBName;
+const isLastTurn = turnsThisRound + 1 >= totalTurnsPerRound && round >= rounds;
+
+    return (
+      <View style={st.container}>
+        <View style={st.header}>
+          <Text style={st.headerTitle}>⏰ Süre Doldu!</Text>
+          <Text style={st.roundInfo}>Tur {round}/{rounds}</Text>
+        </View>
+
+        <View style={st.scoreBoard}>
+          <View style={[st.teamBadge, isTeamATurn && st.activeTeamBadge]}>
+            <Text style={[st.teamBadgeText, isTeamATurn && st.activeTeamBadgeText]}>
+              {teamAName}: {scores.teamA}
+            </Text>
+          </View>
+          <View style={[st.teamBadge, !isTeamATurn && st.activeTeamBadge]}>
+            <Text style={[st.teamBadgeText, !isTeamATurn && st.activeTeamBadgeText]}>
+              {teamBName}: {scores.teamB}
+            </Text>
+          </View>
+        </View>
+
+        <View style={st.introCard}>
+          <Text style={st.introSira}>Süre doldu!</Text>
+          <Text style={st.introPlayer}>{currentPlayer?.name}</Text>
+          <Text style={st.introSira}>anlattı.</Text>
+
+          {!isLastTurn && (
+            <>
+              <View style={{ height: 30 }} />
+              <Text style={st.introSira}>Sıradaki:</Text>
+              <View style={[st.teamLabel, { backgroundColor: nextIsTeamA ? '#6366F1' : '#EC4899' }]}>
+                <Text style={st.teamLabelText}>{nextTeamName}</Text>
+              </View>
+              <Text style={st.introPlayer}>{nextPlayer?.name}</Text>
+            </>
+          )}
+        </View>
+
+        <View style={st.fixedFooter}>
+          <TouchableOpacity style={st.secondaryBtn} onPress={endGame}>
+            <Text style={st.secondaryBtnText}>Bitir</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={st.primaryBtn} onPress={goToNextTurn}>
+            <Text style={st.primaryBtnText}>
+              {isLastTurn ? 'Sonuçları Gör' : 'Devam →'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // ── SCOREBOARD ─────────────────────────────────────
+  if (gamePhase === 'scoreboard') {
+    const winner = scores.teamA > scores.teamB ? teamAName
+      : scores.teamB > scores.teamA ? teamBName : null;
+    const isDraw = scores.teamA === scores.teamB;
+
+    return (
+      <View style={st.container}>
+        <View style={st.header}>
+          <Text style={st.headerTitle}>🏆 Oyun Bitti!</Text>
+        </View>
+
+        <View style={st.scoreboardContainer}>
+          <View style={[st.teamCard, winner === teamAName && st.winnerCard]}>
+            <Text style={st.teamCardName}>{teamAName}</Text>
+            <Text style={st.teamCardScore}>{scores.teamA}</Text>
+            <Text style={st.teamCardLabel}>puan</Text>
+            {winner === teamAName && <Text style={st.winnerBadge}>👑 Kazanan</Text>}
+          </View>
+          <View style={st.vsContainer}>
+            <Text style={st.vsText}>VS</Text>
+          </View>
+          <View style={[st.teamCard, winner === teamBName && st.winnerCard]}>
+            <Text style={st.teamCardName}>{teamBName}</Text>
+            <Text style={st.teamCardScore}>{scores.teamB}</Text>
+            <Text style={st.teamCardLabel}>puan</Text>
+            {winner === teamBName && <Text style={st.winnerBadge}>👑 Kazanan</Text>}
+          </View>
+        </View>
+
+        {isDraw && <Text style={st.drawText}>🤝 Berabere!</Text>}
+
+        <View style={st.statsContainer}>
+  <Text style={st.statsTitle}>{teamAName}</Text>
+  {teamAPlayers.map((p: any, i: number) => (
+    <View key={i} style={st.playerStatRow}>
+      <Text style={st.playerStatName}>{p.name}</Text>
+      <Text style={[st.playerStatValue, {color: '#10B981'}]}>✓ {playerStats[p.name]?.correct || 0}</Text>
+      <Text style={[st.playerStatValue, {color: '#F59E0B'}]}>↩ {playerStats[p.name]?.pass || 0}</Text>
+      <Text style={[st.playerStatValue, {color: '#EF4444'}]}>✗ {playerStats[p.name]?.taboo || 0}</Text>
+    </View>
+  ))}
+
+  <View style={st.statsDivider} />
+
+  <Text style={st.statsTitle}>{teamBName}</Text>
+  {teamBPlayers.map((p: any, i: number) => (
+    <View key={i} style={st.playerStatRow}>
+      <Text style={st.playerStatName}>{p.name}</Text>
+      <Text style={[st.playerStatValue, {color: '#10B981'}]}>✓ {playerStats[p.name]?.correct || 0}</Text>
+      <Text style={[st.playerStatValue, {color: '#F59E0B'}]}>↩ {playerStats[p.name]?.pass || 0}</Text>
+      <Text style={[st.playerStatValue, {color: '#EF4444'}]}>✗ {playerStats[p.name]?.taboo || 0}</Text>
+    </View>
+  ))}
+</View>
+
+        <View style={st.spacer} />
+
+        <View style={st.fixedFooter}>
+          <TouchableOpacity style={st.secondaryBtn} onPress={() => navigation.navigate('Setup', { gameType: 'taboo' })}>
+  <Text style={st.secondaryBtnText}>Yeniden Oyna</Text>
+</TouchableOpacity>
+          <TouchableOpacity style={st.primaryBtn} onPress={() => navigation.navigate('Home')}>
+            <Text style={st.primaryBtnText}>Ana Menü</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // ── PLAYING ────────────────────────────────────────
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Anlat Bakalım</Text>
-        <Text style={styles.roundInfo}>Tur {round}/{rounds}</Text>
+    <View style={st.container}>
+      <View style={st.header}>
+        <Text style={st.headerTitle}>Anlat Bakalım</Text>
+        <Text style={st.roundInfo}>Tur {round}/{rounds}</Text>
       </View>
 
-      {/* Score Board */}
-      <View style={styles.scoreBoard}>
-        <View style={[styles.teamBadge, currentTeamIndex === 0 && styles.activeTeamBadge]}>
-          <Text style={[styles.teamBadgeText, currentTeamIndex === 0 && styles.activeTeamBadgeText]}>
+      <View style={st.scoreBoard}>
+        <View style={[st.teamBadge, isTeamATurn && st.activeTeamBadge]}>
+          <Text style={[st.teamBadgeText, isTeamATurn && st.activeTeamBadgeText]}>
             {teamAName}: {scores.teamA}
           </Text>
         </View>
-        <View style={[styles.teamBadge, currentTeamIndex === 1 && styles.activeTeamBadge]}>
-          <Text style={[styles.teamBadgeText, currentTeamIndex === 1 && styles.activeTeamBadgeText]}>
+        <View style={[st.teamBadge, !isTeamATurn && st.activeTeamBadge]}>
+          <Text style={[st.teamBadgeText, !isTeamATurn && st.activeTeamBadgeText]}>
             {teamBName}: {scores.teamB}
           </Text>
         </View>
       </View>
 
-      {/* Timer */}
-      <View style={styles.timerContainer}>
-        <Text style={[styles.timer, timeLeft <= 10 && styles.timerWarning]}>
+      <View style={st.timerContainer}>
+        <Text style={[st.timer, timeLeft <= 10 && st.timerWarning]}>
           {formatTime(timeLeft)}
         </Text>
       </View>
 
-      {/* Current Player Banner */}
-      <View style={styles.playerBanner}>
-        <Text style={styles.playerBannerText}>
-          {currentTeamName} - {currentPlayer.name}
+      <View style={st.playerBanner}>
+        <Text style={st.playerBannerText}>
+          {currentTeamName} — {currentPlayer?.name}
         </Text>
         {passLimit !== 999 && (
-          <Text style={styles.passCountText}>
-            Pas: {passesUsed}/{passLimit}
-          </Text>
+          <Text style={st.passCountText}>Pas: {passesUsed}/{passLimit}</Text>
         )}
       </View>
 
-      {/* Word Card */}
-      <View style={styles.wordCard}>
+      <View style={st.wordCard}>
         {isLoadingWord ? (
-          <Text style={styles.word}>⏳ Kelime Geliyor...</Text>
+          <Text style={st.word}>⏳ Yükleniyor...</Text>
         ) : (
           <>
-            <Text style={styles.word}>
-              {currentWord?.word ? currentWord.word.charAt(0).toUpperCase() + currentWord.word.slice(1) : ''}
-            </Text>
-            <View style={styles.divider} />
-            <Text style={styles.forbiddenTitle}>YASAK KELİMELER:</Text>
-            {/* Backend'den gelen forbidden_words JSON verisini haritalıyoruz */}
-            {(currentWord?.forbidden_words || []).map((word: string, index: number) => (
-  <Text key={index} style={styles.forbiddenWord}>
-    {word ? word.charAt(0).toUpperCase() + word.slice(1) : ''}
-  </Text>
-))}
+            <Text style={st.word}>{capitalize(currentWord?.word || '')}</Text>
+            <View style={st.divider} />
+            <Text style={st.forbiddenTitle}>YASAK KELİMELER:</Text>
+            {(currentWord?.forbidden_words || []).map((w: string, i: number) => (
+              <Text key={i} style={st.forbiddenWord}>{capitalize(w)}</Text>
+            ))}
           </>
         )}
       </View>
 
-      {/* Game Controls */}
-      <View style={styles.gameControls}>
-        {!isPlaying ? (
-          <TouchableOpacity style={styles.startButton} onPress={startGame}>
-            <Text style={styles.startButtonText}>BAŞLA</Text>
+      <View style={st.gameControls}>
+        <View style={st.actionButtons}>
+          <TouchableOpacity style={[st.actionButton, st.tabooButton]} onPress={handleTaboo}>
+            <Text style={st.actionButtonText}>TABU</Text>
           </TouchableOpacity>
-        ) : (
-          <>
-            <TouchableOpacity style={styles.pauseButton} onPress={pauseGame}>
-              <Text style={styles.pauseButtonText}>DURDUR</Text>
-            </TouchableOpacity>
-
-            <View style={styles.actionButtons}>
-              <TouchableOpacity 
-                style={[styles.actionButton, styles.tabooButton]} 
-                onPress={handleTaboo}
-              >
-                <Text style={styles.actionButtonText}>TABU</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={[
-                  styles.actionButton, 
-                  styles.passButton,
-                  passDisabled && styles.passButtonDisabled
-                ]} 
-                onPress={handlePass}
-                disabled={passDisabled}
-              >
-                <Text style={styles.actionButtonText}>
-                  {passDisabled ? 'PAS YOK' : 'PAS'}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={[styles.actionButton, styles.correctButton]} 
-                onPress={handleCorrect}
-              >
-                <Text style={styles.actionButtonText}>DOĞRU</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
+          <TouchableOpacity
+            style={[st.actionButton, st.passButton, passDisabled && st.passButtonDisabled]}
+            onPress={handlePass}
+            disabled={passDisabled}
+          >
+            <Text style={st.actionButtonText}>{passDisabled ? 'PAS YOK' : 'PAS'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[st.actionButton, st.correctButton]} onPress={handleCorrect}>
+            <Text style={st.actionButtonText}>DOĞRU</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Fixed Bottom Buttons */}
-      <View style={styles.fixedFooter}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>Geri</Text>
+      <View style={st.fixedFooter}>
+        <TouchableOpacity style={st.secondaryBtn} onPress={endGame}>
+          <Text style={st.secondaryBtnText}>Bitir</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.endButton} onPress={endGame}>
-          <Text style={styles.endButtonText}>Oyunu Bitir</Text>
+        <TouchableOpacity
+          style={[st.primaryBtn, { backgroundColor: '#334155' }]}
+          onPress={() => setIsPlaying(p => !p)}
+        >
+          <Text style={st.primaryBtnText}>{isPlaying ? '⏸ DURDUR' : '▶ DEVAM'}</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0F172A',
-    paddingHorizontal: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 50,
-    marginBottom: 10,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#F8FAFC',
-  },
-  roundInfo: {
-    fontSize: 16,
-    color: '#6366F1',
-    fontWeight: '600',
-  },
-  scoreBoard: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 10,
-    marginBottom: 10,
-  },
-  teamBadge: {
-    backgroundColor: '#1E293B',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#334155',
-  },
-  activeTeamBadge: {
-    backgroundColor: '#6366F1',
-    borderColor: '#6366F1',
-  },
-  teamBadgeText: {
-    color: '#94A3B8',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  activeTeamBadgeText: {
-    color: '#FFFFFF',
-  },
-  timerContainer: {
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  timer: {
-    fontSize: 42,
-    fontWeight: 'bold',
-    color: '#F8FAFC',
-  },
-  timerWarning: {
-    color: '#EF4444',
-  },
-  playerBanner: {
-    backgroundColor: '#1E293B',
-    padding: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 15,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  playerBannerText: {
-    color: '#F8FAFC',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  passCountText: {
-    color: '#F59E0B',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  wordCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 35,
-    paddingVertical: 50,
-    alignItems: 'center',
-    marginBottom: 10,
-    minHeight: 280,
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  word: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1E293B',
-    marginBottom: 12,
-  },
-  divider: {
-    width: '100%',
-    height: 2,
-    backgroundColor: '#E2E8F0',
-    marginVertical: 12,
-  },
-  forbiddenTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#EF4444',
-    marginBottom: 8,
-  },
-  forbiddenWord: {
-    fontSize: 18,
-    color: '#64748B',
-    marginVertical: 3,
-    fontWeight: '500',
-  },
-  gameControls: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    paddingTop: 10,
-  },
-  startButton: {
-    backgroundColor: '#10B981',
-    padding: 18,
-    borderRadius: 15,
-    alignItems: 'center',
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  startButtonText: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  pauseButton: {
-    backgroundColor: '#334155',
-    padding: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  pauseButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  actionButton: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  actionButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  tabooButton: {
-    backgroundColor: '#EF4444',
-  },
-  passButton: {
-    backgroundColor: '#F59E0B',
-  },
-  passButtonDisabled: {
-    backgroundColor: '#475569',
-    opacity: 0.5,
-  },
-  correctButton: {
-    backgroundColor: '#10B981',
-  },
-  // Fixed Footer
-  fixedFooter: {
-    flexDirection: 'row',
-    paddingVertical: 15,
-    paddingBottom: 30,
-    gap: 10,
-    backgroundColor: '#0F172A',
-  },
-  backButton: {
-    flex: 1,
-    backgroundColor: '#334155',
-    padding: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  backButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  endButton: {
-    flex: 2,
-    backgroundColor: '#DC2626',
-    padding: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  endButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  // Scoreboard styles
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#F8FAFC',
-    textAlign: 'center',
-  },
-  scoreboardContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 15,
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  teamCard: {
-    backgroundColor: '#1E293B',
-    borderRadius: 20,
-    padding: 20,
-    alignItems: 'center',
-    minWidth: 120,
-    borderWidth: 2,
-    borderColor: '#334155',
-  },
-  winnerCard: {
-    borderColor: '#F59E0B',
-    backgroundColor: '#2D1B0E',
-  },
-  vsContainer: {
-    paddingHorizontal: 10,
-  },
-  vsText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#6366F1',
-  },
-  teamName: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#F8FAFC',
-    marginBottom: 8,
-  },
-  teamScore: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: '#6366F1',
-  },
-  teamLabel: {
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 4,
-  },
-  winnerBadge: {
-    fontSize: 12,
-    color: '#F59E0B',
-    fontWeight: 'bold',
-    marginTop: 8,
-  },
-  drawContainer: {
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  drawText: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#F8FAFC',
-  },
-  statsContainer: {
-    backgroundColor: '#1E293B',
-    borderRadius: 15,
-    padding: 18,
-    marginHorizontal: 10,
-  },
-  statsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#F8FAFC',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  statsText: {
-    fontSize: 14,
-    color: '#94A3B8',
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  spacer: {
-    flex: 1,
-  },
-  restartButton: {
-    flex: 1,
-    backgroundColor: '#6366F1',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  restartButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  homeButton: {
-    flex: 1,
-    backgroundColor: '#334155',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  homeButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+const st = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#0F172A', paddingHorizontal: 20 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 50, marginBottom: 10 },
+  headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#F8FAFC' },
+  roundInfo: { fontSize: 16, color: '#6366F1', fontWeight: '600' },
+  scoreBoard: { flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 10 },
+  teamBadge: { backgroundColor: '#1E293B', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, borderWidth: 2, borderColor: '#334155' },
+  activeTeamBadge: { backgroundColor: '#6366F1', borderColor: '#6366F1' },
+  teamBadgeText: { color: '#94A3B8', fontSize: 14, fontWeight: '600' },
+  activeTeamBadgeText: { color: '#FFFFFF' },
+  introCard: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  teamLabel: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, marginBottom: 16 },
+  teamLabelText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
+  introSira: { fontSize: 22, color: '#94A3B8', marginVertical: 4 },
+  introPlayer: { fontSize: 44, fontWeight: 'bold', color: '#F8FAFC', textAlign: 'center', marginVertical: 4 },
+  infoRow: { flexDirection: 'row', gap: 20, marginTop: 20 },
+  infoText: { fontSize: 16, color: '#F59E0B' },
+  timerContainer: { alignItems: 'center', marginBottom: 8 },
+  timer: { fontSize: 48, fontWeight: 'bold', color: '#F8FAFC' },
+  timerWarning: { color: '#EF4444' },
+  playerBanner: { backgroundColor: '#1E293B', padding: 12, borderRadius: 10, alignItems: 'center', marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between' },
+  playerBannerText: { color: '#F8FAFC', fontSize: 16, fontWeight: '600' },
+  passCountText: { color: '#F59E0B', fontSize: 14, fontWeight: '600' },
+  wordCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 25, alignItems: 'center', marginBottom: 10, minHeight: 240, justifyContent: 'center' },
+  word: { fontSize: 28, fontWeight: 'bold', color: '#1E293B', marginBottom: 12 },
+  divider: { width: '100%', height: 2, backgroundColor: '#E2E8F0', marginVertical: 10 },
+  forbiddenTitle: { fontSize: 13, fontWeight: 'bold', color: '#EF4444', marginBottom: 6 },
+  forbiddenWord: { fontSize: 17, color: '#64748B', marginVertical: 2, fontWeight: '500' },
+  gameControls: { flex: 1, justifyContent: 'flex-start', paddingTop: 8 },
+  actionButtons: { flexDirection: 'row', gap: 10 },
+  actionButton: { flex: 1, padding: 18, borderRadius: 12, alignItems: 'center' },
+  actionButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
+  tabooButton: { backgroundColor: '#EF4444' },
+  passButton: { backgroundColor: '#F59E0B' },
+  passButtonDisabled: { backgroundColor: '#475569', opacity: 0.5 },
+  correctButton: { backgroundColor: '#10B981' },
+  fixedFooter: { flexDirection: 'row', paddingVertical: 12, paddingBottom: 30, gap: 10, backgroundColor: '#0F172A' },
+  secondaryBtn: { flex: 1, backgroundColor: '#334155', padding: 14, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  secondaryBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
+  primaryBtn: { flex: 1, backgroundColor: '#6366F1', padding: 14, borderRadius: 10, alignItems: 'center' },
+  primaryBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
+  scoreboardContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 15, marginTop: 20, marginBottom: 20 },
+  teamCard: { backgroundColor: '#1E293B', borderRadius: 20, padding: 20, alignItems: 'center', minWidth: 120, borderWidth: 2, borderColor: '#334155' },
+  winnerCard: { borderColor: '#F59E0B', backgroundColor: '#2D1B0E' },
+  vsContainer: { paddingHorizontal: 10 },
+  vsText: { fontSize: 20, fontWeight: 'bold', color: '#6366F1' },
+  teamCardName: { fontSize: 14, fontWeight: 'bold', color: '#F8FAFC', marginBottom: 8 },
+  teamCardScore: { fontSize: 40, fontWeight: 'bold', color: '#6366F1' },
+  teamCardLabel: { fontSize: 12, color: '#94A3B8', marginTop: 4 },
+  winnerBadge: { fontSize: 12, color: '#F59E0B', fontWeight: 'bold', marginTop: 8 },
+  drawText: { fontSize: 22, fontWeight: 'bold', color: '#F8FAFC', textAlign: 'center', marginBottom: 15 },
+  statsContainer: { backgroundColor: '#1E293B', borderRadius: 15, padding: 18, marginHorizontal: 10 },
+  statsTitle: { fontSize: 16, fontWeight: 'bold', color: '#F8FAFC', marginBottom: 12, textAlign: 'center' },
+  statsText: { fontSize: 14, color: '#94A3B8', marginBottom: 6, textAlign: 'center' },
+  spacer: { flex: 1 },
+  playerStatRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 },
+playerStatName: { flex: 1, fontSize: 14, color: '#F8FAFC', fontWeight: '600' },
+playerStatValue: { fontSize: 14, fontWeight: 'bold', minWidth: 35, textAlign: 'center' },
+statsDivider: { height: 1, backgroundColor: '#334155', marginVertical: 12 },
 });

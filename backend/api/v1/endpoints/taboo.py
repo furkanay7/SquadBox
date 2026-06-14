@@ -22,3 +22,11 @@ async def get_random_taboo_word(db: AsyncSession = Depends(get_db_session)):
         "category": word.category,
         "forbidden_words": word.forbidden_words
     }
+
+
+@router.get("/all")
+async def get_all_taboo_words(db: AsyncSession = Depends(get_db_session)):
+    query = select(Taboo).order_by(func.random())
+    result = await db.execute(query)
+    words = result.scalars().all()
+    return [{"id": w.id, "word": w.word, "category": w.category, "forbidden_words": w.forbidden_words} for w in words]
