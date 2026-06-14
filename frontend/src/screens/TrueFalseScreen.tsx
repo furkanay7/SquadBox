@@ -26,6 +26,16 @@ const EASY_QUESTIONS: Question[] = [
   { question: 'Elmas, bilinen en sert doğal maddedir.', answer: true, explanation: 'Elmas, Mohs sertlik skalasında 10 puan alır.' },
   { question: 'İnsan vücudunda 206 kemik vardır.', answer: true, explanation: 'Yetişkin bir insan iskeletinde 206 kemik bulunur.' },
   { question: 'Okyanuslar, Dünya yüzeyinin yaklaşık %70\'ini kaplar.', answer: true, explanation: 'Dünya yüzeyinin yaklaşık %71\'i su ile kaplıdır.' },
+  { question: 'Paris, Fransa\'nın başkentidir.', answer: true, explanation: 'Paris, Fransa\'nın hem başkenti hem de en büyük şehridir.' },
+  { question: 'İnsanlar solungaçla nefes alır.', answer: false, explanation: 'İnsanlar akciğerleriyle nefes alır. Solungaçlar balıklara özgüdür.' },
+  { question: 'Çin Seddi uzaydan görülebilir.', answer: false, explanation: 'Bu yaygın bir efsanedir; Çin Seddi uzaydan çıplak gözle görülemez.' },
+  { question: 'Domates bir meyvedir.', answer: true, explanation: 'Botanik açıdan domates, çiçekli bitkinin yumurtalığından geldiği için meyvedir.' },
+  { question: 'Şeker arıları tarafından üretilir.', answer: false, explanation: 'Şeker şeker kamışı veya pancardan elde edilir; bal arılar tarafından üretilir.' },
+  { question: 'Dünya\'nın en büyük kıtası Asya\'dır.', answer: true, explanation: 'Asya, yaklaşık 44,6 milyon km² yüzölçümüyle en büyük kıtadır.' },
+  { question: 'Olimpiyat oyunları her 4 yılda bir düzenlenir.', answer: true, explanation: 'Modern Olimpiyat Oyunları 1896\'dan beri 4 yılda bir düzenlenmektedir.' },
+  { question: 'Yarasa kör bir hayvandır.', answer: false, explanation: 'Yarasalar görebilir; hem gözlerini hem de ekolokasyonu kullanırlar.' },
+  { question: 'Şimşek hiçbir zaman aynı yere iki kez düşmez.', answer: false, explanation: 'Bu bir efsanedir; şimşek aynı yere birden fazla kez düşebilir.' },
+  { question: 'Mars kırmızı bir gezegendir.', answer: true, explanation: 'Mars, yüzeyindeki demir oksit (pas) nedeniyle kırmızı görünür.' },
 ];
 
 const MEDIUM_QUESTIONS: Question[] = [
@@ -39,6 +49,16 @@ const MEDIUM_QUESTIONS: Question[] = [
   { question: 'Japon bayrağında yıldız vardır.', answer: false, explanation: 'Japon bayrağında beyaz zemin üzerinde kırmızı daire vardır.' },
   { question: 'DNA çift sarmal yapısındadır.', answer: true, explanation: 'DNA, Watson ve Crick tarafından keşfedilen çift sarmal yapıya sahiptir.' },
   { question: 'Osmanlı İmparatorluğu 600 yıldan fazla sürdü.', answer: true, explanation: 'Osmanlı İmparatorluğu 1299-1922 yılları arasında yaklaşık 623 yıl sürdü.' },
+  { question: 'Avustralya hem bir ülke hem bir kıtadır.', answer: true, explanation: 'Avustralya, aynı zamanda Okyanusya kıtasının ana kara parçasıdır.' },
+  { question: 'Okyanus suyu tatlı sudur.', answer: false, explanation: 'Okyanus suyu tuzludur; ortalama tuzluluk oranı binde 35\'tir.' },
+  { question: 'İnsan beyni %80 sudan oluşur.', answer: false, explanation: 'İnsan beyni yaklaşık %73 sudan oluşur.' },
+  { question: 'Güneş bir yıldızdır.', answer: true, explanation: 'Güneş, Dünya\'ya en yakın yıldızdır.' },
+  { question: 'Kafein bir uyarıcıdır.', answer: true, explanation: 'Kafein, merkezi sinir sistemini uyaran bir maddedir.' },
+  { question: 'Kaktüs yapraklarında su depolar.', answer: false, explanation: 'Kaktüsler suyu gövdelerinde depolar, yapraklarda değil.' },
+  { question: 'Dünya\'nın en uzun nehri Nil\'dir.', answer: true, explanation: 'Nil nehri yaklaşık 6.650 km ile dünyanın en uzun nehridir.' },
+  { question: 'Çelik demirden daha sağlamdır.', answer: true, explanation: 'Çelik, demir ve karbon alaşımı olup demirden çok daha dayanıklıdır.' },
+  { question: 'Oksijenin sembolü O2\'dir.', answer: false, explanation: 'Oksijenin elementi O\'dur; O2 ise iki oksijen atomundan oluşan oksijen molekülüdür.' },
+  { question: 'Balıklar soğukkanlı hayvanlardır.', answer: true, explanation: 'Balıklar ektoterm (soğukkanlı) hayvanlardır; vücut sıcaklıkları çevre sıcaklığına bağlıdır.' },
 ];
 
 const HARD_QUESTIONS: Question[] = [
@@ -52,6 +72,16 @@ const HARD_QUESTIONS: Question[] = [
   { question: 'Fibonacci dizisinde her sayı kendinden önceki iki sayının toplamıdır.', answer: true, explanation: 'Fibonacci dizisi: 0, 1, 1, 2, 3, 5, 8, 13... şeklinde devam eder.' },
   { question: 'Dünyanın manyetik kuzey kutbu ile coğrafi kuzey kutbu aynı noktadadır.', answer: false, explanation: 'Manyetik ve coğrafi kuzey kutupları farklı konumlardadır ve manyetik kutup zamanla kayar.' },
   { question: 'ATP, hücrelerin temel enerji molekülüdür.', answer: true, explanation: 'Adenozin trifosfat (ATP), hücresel enerji transferinin temel molekülüdür.' },
+  { question: 'Plüton bir gezegen olarak kabul edilmektedir.', answer: false, explanation: 'Plüton 2006\'da cüce gezegen olarak yeniden sınıflandırıldı.' },
+  { question: 'Karbon atomu 6 proton içerir.', answer: true, explanation: 'Karbon\'un atom numarası 6\'dır, yani çekirdeğinde 6 proton bulunur.' },
+  { question: 'CERN, Fransa-İsviçre sınırında yer almaktadır.', answer: true, explanation: 'CERN\'in büyük hadron çarpıştırıcısı Fransa-İsviçre sınırında bulunur.' },
+  { question: 'Evren yaklaşık 14 milyar yaşındadır.', answer: true, explanation: 'Büyük Patlama\'ya göre evrenin yaşı yaklaşık 13,8 milyar yıldır.' },
+  { question: 'Nötronlar pozitif yük taşır.', answer: false, explanation: 'Nötronlar elektriksel açıdan nötrdür; yük taşımazlar.' },
+  { question: 'Mutlak sıfır -273,15 santigrat derecedir.', answer: true, explanation: 'Mutlak sıfır, -273,15°C veya 0 Kelvin\'dir.' },
+  { question: 'RNA tek ipliklidir.', answer: true, explanation: 'DNA\'nın aksine RNA genellikle tek iplikli bir moleküldür.' },
+  { question: 'Kara delikler ışığı emer.', answer: true, explanation: 'Kara deliklerin kütle çekimi o kadar güçlüdür ki kaçış hızı ışık hızını aşar.' },
+  { question: 'Sinir impulsu elektrik sinyalidir.', answer: true, explanation: 'Sinir hücreleri elektrokimyasal sinyaller iletir.' },
+  { question: 'Helyum oda sıcaklığında sıvı haldedir.', answer: false, explanation: 'Helyum oda sıcaklığında gaz haldedir; sıvılaşması için -269°C gerekir.' },
 ];
 
 export const TrueFalseScreen: React.FC<TrueFalseScreenProps> = ({ navigation }) => {
@@ -67,6 +97,7 @@ export const TrueFalseScreen: React.FC<TrueFalseScreenProps> = ({ navigation }) 
   const [scores, setScores] = useState<number[]>([]);
   const [answered, setAnswered] = useState(false);
   const [wasCorrect, setWasCorrect] = useState<boolean | null>(null);
+  const [questionCount, setQuestionCount] = useState(10);
 
   const addPlayer = () => {
     if (playerNames.length >= 8) return;
@@ -94,17 +125,16 @@ export const TrueFalseScreen: React.FC<TrueFalseScreenProps> = ({ navigation }) 
       Alert.alert('Konu Gerekli', 'Bir konu girin!');
       return;
     }
-
     setIsGenerating(true);
     try {
       const response = await fetch('https://squadbox-production.up.railway.app/api/v1/ai/generate/truefalse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: aiTopic.trim(), count: 15, difficulty }),
+        body: JSON.stringify({ topic: aiTopic.trim(), count: questionCount, difficulty }),
       });
       if (!response.ok) throw new Error('AI hatası');
       const data = await response.json();
-      startPlaying(data.questions, validNames);
+      startPlaying(data.questions.slice(0, questionCount), validNames);
     } catch {
       Alert.alert('Hata', 'Sorular üretilemedi.');
     } finally {
@@ -119,7 +149,7 @@ export const TrueFalseScreen: React.FC<TrueFalseScreenProps> = ({ navigation }) 
       return;
     }
     const questionPool = difficulty === 'easy' ? EASY_QUESTIONS : difficulty === 'hard' ? HARD_QUESTIONS : MEDIUM_QUESTIONS;
-    const shuffled = [...questionPool].sort(() => Math.random() - 0.5);
+    const shuffled = [...questionPool].sort(() => Math.random() - 0.5).slice(0, questionCount);
     startPlaying(shuffled, validNames);
   };
 
@@ -159,7 +189,6 @@ export const TrueFalseScreen: React.FC<TrueFalseScreenProps> = ({ navigation }) 
 
   const validNames = playerNames.filter(n => n.trim() !== '');
 
-  // ── SETUP ──────────────────────────────────────────
   if (phase === 'setup') {
     return (
       <View style={s.container}>
@@ -220,6 +249,19 @@ export const TrueFalseScreen: React.FC<TrueFalseScreenProps> = ({ navigation }) 
             ))}
           </View>
 
+          <Text style={[s.label, { marginTop: 20 }]}>Soru Sayısı</Text>
+          <View style={s.modeRow}>
+            {[5, 10, 15, 20].map((count) => (
+              <TouchableOpacity
+                key={count}
+                style={[s.modeBtn, questionCount === count && s.modeBtnActive]}
+                onPress={() => setQuestionCount(count)}
+              >
+                <Text style={[s.modeName, questionCount === count && s.modeNameActive]}>{count}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
           <Text style={[s.label, { marginTop: 20 }]}>Oyuncular</Text>
           <Text style={s.hint}>En az 2 oyuncu gerekli</Text>
           {playerNames.map((name, i) => (
@@ -263,7 +305,6 @@ export const TrueFalseScreen: React.FC<TrueFalseScreenProps> = ({ navigation }) 
     );
   }
 
-  // ── PLAYING ────────────────────────────────────────
   if (phase === 'playing') {
     const current = questions[currentIndex];
     const currentPlayer = validNames[currentPlayerIndex];
@@ -294,11 +335,11 @@ export const TrueFalseScreen: React.FC<TrueFalseScreenProps> = ({ navigation }) 
 
         {!answered ? (
           <View style={s.answerRow}>
-            <TouchableOpacity style={[s.answerBtn, { backgroundColor: '#10B981' }]} onPress={() => handleAnswer(true)}>
-              <Text style={s.answerBtnText}>✓ DOĞRU</Text>
-            </TouchableOpacity>
             <TouchableOpacity style={[s.answerBtn, { backgroundColor: '#EF4444' }]} onPress={() => handleAnswer(false)}>
               <Text style={s.answerBtnText}>✗ YANLIŞ</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[s.answerBtn, { backgroundColor: '#10B981' }]} onPress={() => handleAnswer(true)}>
+              <Text style={s.answerBtnText}>✓ DOĞRU</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -315,25 +356,18 @@ export const TrueFalseScreen: React.FC<TrueFalseScreenProps> = ({ navigation }) 
           </View>
         )}
 
-        <View style={{ flexDirection: 'row', paddingHorizontal: 20, gap: 10, marginTop: 10 }}>
-  <TouchableOpacity 
-    style={[s.secondaryBtn, { flex: 1 }]} 
-    onPress={() => setPhase('setup')}
-  >
-    <Text style={s.secondaryBtnText}>↩ Yeniden Kur</Text>
-  </TouchableOpacity>
-  <TouchableOpacity 
-    style={[s.secondaryBtn, { flex: 1 }]} 
-    onPress={() => navigation.navigate('Home')}
-  >
-    <Text style={s.secondaryBtnText}>Ana Menü</Text>
-  </TouchableOpacity>
-</View>
+        <View style={s.footer}>
+          <TouchableOpacity style={s.secondaryBtn} onPress={() => setPhase('setup')}>
+            <Text style={s.secondaryBtnText}>↩ Yeniden Kur</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.secondaryBtn} onPress={() => navigation.navigate('Home')}>
+            <Text style={s.secondaryBtnText}>Ana Menü</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
 
-  // ── RESULT ─────────────────────────────────────────
   if (phase === 'result') {
     const sorted = validNames
       .map((name, idx) => ({ name, score: scores[idx] }))
@@ -422,8 +456,6 @@ const s = StyleSheet.create({
   explanationText: { fontSize: 14, color: '#94A3B8', textAlign: 'center', lineHeight: 20, marginBottom: 14 },
   nextBtn: { backgroundColor: '#6366F1', padding: 13, borderRadius: 10, alignItems: 'center', width: '100%' },
   nextBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
-  menuBtn: { alignSelf: 'center', padding: 12, marginTop: 10 },
-  menuBtnText: { color: '#64748B', fontSize: 14 },
   scoreRow: { backgroundColor: '#1E293B', padding: 16, borderRadius: 12, marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
   scoreRowWinner: { backgroundColor: '#2D1B0E', borderWidth: 2, borderColor: '#F59E0B' },
   scoreRank: { color: '#64748B', fontSize: 16, width: 25 },
